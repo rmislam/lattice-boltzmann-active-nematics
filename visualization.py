@@ -47,5 +47,5 @@ def updateAx2(i):
 # Create the animation object
 velocity_animation_fig = animation.FuncAnimation(fig1, updateAx1, frames=NUM_FILES, interval=100, blit=True, repeat_delay=5,)
 orientation_animation_fig = animation.FuncAnimation(fig2, updateAx2, frames=NUM_FILES, interval=100, blit=True, repeat_delay=5,)
-velocity_animation_fig.save("velocity.gif", dpi=600)
-orientation_animation_fig.save("orientation.gif", dpi=600)
+velocity_animation_fig.save("velocity.gif", dpi=600, savefig_kwargs=dict(facecolor='xkcd:light grey'))
+orientation_animation_fig.save("orientation.gif", dpi=600, savefig_kwargs=dict(facecolor='xkcd:light grey'))

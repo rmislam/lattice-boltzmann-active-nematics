@@ -37,8 +37,11 @@ int STPROC = 2;
 //Alignment parameter
 #define LAMBDA 1.1
 
+//Ekman linear friction coefficient
+#define MU 0.01
+
 //Activity
-#define ALPHA 0.1
+#define ALPHA 0.01
 
 //Logical markers for bulk and boundary points
 #define LMARKBULK 2    //bulk

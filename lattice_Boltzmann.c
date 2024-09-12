@@ -38,6 +38,7 @@ void compute_LB_step() {
     //Adapt the velocity field for PBC
     #pragma omp parallel for num_threads(STPROC) schedule(dynamic)
 
+    # TODO: change BC here to inlet/outlet
     for(int l = 0; l < NMAX; l++) {
         for (int m = 0; m < 3; m++) {
             U[m][l] = U[m][calcLpbc(l)];
@@ -55,8 +56,8 @@ void computeP() {
     for (int l = 0; l < NMAX; l++) {
         if (!(LMARK[l] == LMARKBULK)) continue;
         //Compute the derivatives of the stress tensor and the force
-        double forceX = (SIGMA[0][l + 1] - SIGMA[0][l - 1]) / 2.0 + (SIGMA[1][l + I] - SIGMA[1][l - I]) / 2.0;
-        double forceY = (SIGMA[2][l + 1] - SIGMA[2][l - 1]) / 2.0 + (SIGMA[3][l + I] - SIGMA[3][l - I]) / 2.0;
+        double forceX = (SIGMA[0][l + 1] - SIGMA[0][l - 1]) / 2.0 + (SIGMA[1][l + I] - SIGMA[1][l - I]) / 2.0 - MU * U[1][l];
+        double forceY = (SIGMA[2][l + 1] - SIGMA[2][l - 1]) / 2.0 + (SIGMA[3][l + I] - SIGMA[3][l - I]) / 2.0 - MU * U[2][l];
         
 //        if (i_vr(l) == I/2 && j_vr(l) == 20) printf("%lf %lf    ", forceX, forceY);
 //        if (i_vr(l) == I/2 && j_vr(l) == 20) printf("%lf %lf %f %f      ", SIGMA[0][l], SIGMA[1][l], SIGMA[2][l], SIGMA[3][l]);
@@ -74,6 +75,7 @@ void computeP() {
 
 //Enforce periodic boundaries
 void computePBC_LB() {
+    # TODO: change BC here to inlet/outlet
     #pragma omp parallel for num_threads(STPROC) schedule(dynamic)
     for (int l = 0; l < NMAX; l++) {
         if (LMARK[l] & LMARKBC) {
@@ -134,8 +136,8 @@ void calcF2U(int l) {
 //        fex += factor * FORCE[1][l];
 //        fey += factor * FORCE[2][l];
     
-        U[1][l] = fex / density;
-        U[2][l] = fey / density;
+        U[1][l] = fex / density - MU * U[1][l] * DT / 2.0 / density;
+        U[2][l] = fey / density - MU * U[2][l] * DT / 2.0 / density;
         U[0][l] = density;
     } else {
         U[0][l] = DENSITYINIT;
@@ -161,6 +163,7 @@ void compute_sigma() {
     }
 
     //Impose periodic boundaries
+    # TODO: change BC here to inlet/outlet
     #pragma omp parallel for num_threads(STPROC) schedule(dynamic)
     for (int l = 0; l < NMAX; l++) {
         int lpbc = calcLpbc(l);
