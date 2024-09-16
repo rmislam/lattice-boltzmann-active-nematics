@@ -1,12 +1,16 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+import matplotlib.patches as patches
 import matplotlib.animation as animation
 
-TIME_STEPS = 10000
+TIME_STEPS = 6000
 TIME_WRITE = 50
 NUM_FILES = int(TIME_STEPS / TIME_WRITE)
 DEFECT_ORDER_THRESHOLD = 0.7
+ACTIVITY_X_WIDTH = 0.9
+ACTIVITY_Y_WIDTH = 0.2
+ROTATION_ANGLE = 0  # 0.1 * np.pi
 
 fig1, ax1 = plt.subplots()
 fig1.subplots_adjust(left=0, bottom=0, right=1, top=1, wspace=None, hspace=None)
@@ -24,6 +28,13 @@ def updateAx1(i):
     ax1.clear()
     im = ax1.quiver(x, y, vx, vy, width=0.001, color='blue')
     ax1.set_axis_off()
+    xmin, xmax = np.min(x), np.max(x)
+    ymin, ymax = np.min(y), np.max(y)
+    x_anchor = (xmin + xmax) / 2 - ACTIVITY_X_WIDTH * (xmax - xmin) / 2
+    y_anchor = (ymin + ymax) / 2 - ACTIVITY_Y_WIDTH * (ymax - ymin) / 2
+    rotation_point = (xmin + 0.2 * (xmax - xmin), (ymin + ymax) / 2)
+    activity_pattern = patches.Rectangle((x_anchor, y_anchor), ACTIVITY_X_WIDTH * (xmax - xmin), ACTIVITY_Y_WIDTH * (ymax - ymin), rotation_point=rotation_point, angle=np.rad2deg(ROTATION_ANGLE), facecolor='xkcd:gold', alpha=0.3)
+    ax1.add_patch(activity_pattern)
     return im,
 
 def updateAx2(i):
@@ -42,10 +53,17 @@ def updateAx2(i):
     im = ax2.scatter(x_defects, y_defects, c='green')
     im = ax2.quiver(x, y, cos, sin, width=0.001, color='blue')
     ax2.set_axis_off()
+    xmin, xmax = np.min(x), np.max(x)
+    ymin, ymax = np.min(y), np.max(y)
+    x_anchor = (xmin + xmax) / 2 - ACTIVITY_X_WIDTH * (xmax - xmin) / 2
+    y_anchor = (ymin + ymax) / 2 - ACTIVITY_Y_WIDTH * (ymax - ymin) / 2
+    rotation_point = (xmin + 0.2 * (xmax - xmin), (ymin + ymax) / 2)
+    activity_pattern = patches.Rectangle((x_anchor, y_anchor), ACTIVITY_X_WIDTH * (xmax - xmin), ACTIVITY_Y_WIDTH * (ymax - ymin), rotation_point=rotation_point, angle=np.rad2deg(ROTATION_ANGLE), facecolor='xkcd:gold', alpha=0.3)
+    ax2.add_patch(activity_pattern)
     return im,
 
 # Create the animation object
-velocity_animation_fig = animation.FuncAnimation(fig1, updateAx1, frames=NUM_FILES, interval=100, blit=True, repeat_delay=5,)
-orientation_animation_fig = animation.FuncAnimation(fig2, updateAx2, frames=NUM_FILES, interval=100, blit=True, repeat_delay=5,)
+velocity_animation_fig = animation.FuncAnimation(fig1, updateAx1, frames=NUM_FILES, interval=100, blit=True, repeat_delay=2,)
+orientation_animation_fig = animation.FuncAnimation(fig2, updateAx2, frames=NUM_FILES, interval=100, blit=True, repeat_delay=2,)
 velocity_animation_fig.save("velocity.gif", dpi=600, savefig_kwargs=dict(facecolor='xkcd:light grey'))
 orientation_animation_fig.save("orientation.gif", dpi=600, savefig_kwargs=dict(facecolor='xkcd:light grey'))

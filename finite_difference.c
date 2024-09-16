@@ -23,23 +23,14 @@ void compute_FD_step() {
     calcQNEW2Q();
 }
 
-//Write QNEW back to Q and implement the periodic boundaries
+//Write QNEW back to Q and implement the open boundaries
 void calcQNEW2Q() {
     #pragma omp parallel for num_threads(STPROC) schedule(dynamic)
     for (int l = 0; l < NMAX; l++) {
-        int lpbc = calcLpbc(l);
+        int lobc = calcLobc(l);
         for(int m = 0; m < 2; m++) {
-            Q[m][l] = QNEW[m][lpbc];
+            Q[m][l] = QNEW[m][lobc];
         }
-
-        /*  // attempt at homeotropic anchoring condition
-        if (j_vr(l) == 0 || j_vr(l) == J - 1) {
-            double angle = 0.5  * M_PI;  // homeotropic anchoring condition at top and bottom walls (?)
-            double degree_of_order = 1.;
-            Q[0][l] = degree_of_order / 2.0 * cos(2 * angle);   //Qxx component
-            Q[1][l] = degree_of_order / 2.0 * sin(2 * angle);   //Qxy component
-        }
-        */
     }
 }
 
@@ -68,8 +59,8 @@ void compute_u1(int l, double* Q_laplacian, double* u1) {
 
 //Compute the shear contribution to the Q-tensor dynamics
 void compute_u2(int l, double* u2) {
-    double uxx = (U[1][l + 1] - U[1][l - 1]) / 2.0;
-    double uxy = 0.5 * ( (U[1][l + I] - U[1][l - I]) / 2.0 + (U[2][l + 1] - U[2][l - 1]) / 2.0 );
+    double uxx = (U[1][l + 1] - U[1][l - 1]) / 2.0;  // equal to dvx/dx
+    double uxy = 0.5 * ( (U[1][l + I] - U[1][l - I]) / 2.0 + (U[2][l + 1] - U[2][l - 1]) / 2.0 );  // equal to 0.5 * (dvx/dy + dvy/dx)
     u2[0] = LAMBDA * uxx;
     u2[1] = LAMBDA * uxy;
 }

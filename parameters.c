@@ -12,7 +12,7 @@ char FILE_NAME[80] = "output/active_nematic";
 #define NMAX (I*J)
 
 //Total number of time steps in the simulation
-#define TIME_STEPS 10000 
+#define TIME_STEPS 8000 
 //On how many steps the fields are written to a file
 #define TIME_WRITE 50
 
@@ -35,14 +35,18 @@ int STPROC = 2;
 #define	DENSITYINIT (2.0 / DT)
 
 //Alignment parameter
-#define LAMBDA 1.1
+#define LAMBDA 1.1  // 0.7
 
 //Ekman linear friction coefficient
 #define MU 0.01
 
 //Activity
-#define ALPHA 0.01
+#define ALPHA 0.1
 
 //Logical markers for bulk and boundary points
 #define LMARKBULK 2    //bulk
 #define LMARKBC 4      //boundary condition
+
+//Activity pattern width and height fractions
+#define AWIDTHFRAC 0.9
+#define AHEIGHTFRAC 0.2

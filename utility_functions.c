@@ -1,3 +1,8 @@
+struct point {
+    int i;
+    int j;    
+};
+
 //Line number in the x direction. Range is from 0 to I-1.
 int i_vr(int l) {
     return l % I; 
@@ -56,4 +61,18 @@ void write_orientation(int t) {
     }
     
     fclose(file);
+}
+
+struct point rotate_point(int l, int i_center, int j_center, double angle) {
+    struct point point_rot;
+    int i = i_vr(l);
+    int j = j_vr(l);
+    int rel_i = i - i_center;
+    //int rel_j = j - j_center;
+    int rel_j = j_center - j;
+    double cosTheta = cos(angle);
+    double sinTheta = sin(angle);
+    point_rot.i = round(i_center + cosTheta * rel_i - sinTheta * rel_j);
+    point_rot.j = round(j_center - (sinTheta * rel_i + cosTheta * rel_j));
+    return point_rot;
 }
