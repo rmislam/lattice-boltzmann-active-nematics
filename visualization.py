@@ -4,13 +4,13 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import matplotlib.animation as animation
 
-TIME_STEPS = 6000
+TIME_STEPS = 16000
 TIME_WRITE = 50
 NUM_FILES = int(TIME_STEPS / TIME_WRITE)
 DEFECT_ORDER_THRESHOLD = 0.7
 ACTIVITY_X_WIDTH = 0.9
 ACTIVITY_Y_WIDTH = 0.2
-ROTATION_ANGLE = 0  # 0.1 * np.pi
+ROTATION_ANGLE = 0.25 * np.pi
 
 fig1, ax1 = plt.subplots()
 fig1.subplots_adjust(left=0, bottom=0, right=1, top=1, wspace=None, hspace=None)
@@ -26,7 +26,7 @@ def updateAx1(i):
     vy = df_velocity.iloc[:, 4]
 
     ax1.clear()
-    im = ax1.quiver(x, y, vx, vy, width=0.001, color='blue')
+    im = ax1.quiver(x, y, vx, vy, width=0.0005, color='xkcd:red orange')
     ax1.set_axis_off()
     xmin, xmax = np.min(x), np.max(x)
     ymin, ymax = np.min(y), np.max(y)
@@ -50,8 +50,8 @@ def updateAx2(i):
     y_defects = y.loc[order <= DEFECT_ORDER_THRESHOLD]
 
     ax2.clear()
-    im = ax2.scatter(x_defects, y_defects, c='green')
-    im = ax2.quiver(x, y, cos, sin, width=0.001, color='blue')
+    im = ax2.scatter(x_defects, y_defects, c='xkcd:azure')
+    im = ax2.quiver(x, y, cos, sin, width=0.0005, color='xkcd:red orange', headlength=0, headaxislength=0)  # headless quivers for nematics
     ax2.set_axis_off()
     xmin, xmax = np.min(x), np.max(x)
     ymin, ymax = np.min(y), np.max(y)
@@ -65,5 +65,5 @@ def updateAx2(i):
 # Create the animation object
 velocity_animation_fig = animation.FuncAnimation(fig1, updateAx1, frames=NUM_FILES, interval=100, blit=True, repeat_delay=2,)
 orientation_animation_fig = animation.FuncAnimation(fig2, updateAx2, frames=NUM_FILES, interval=100, blit=True, repeat_delay=2,)
-velocity_animation_fig.save("velocity.gif", dpi=600, savefig_kwargs=dict(facecolor='xkcd:light grey'))
-orientation_animation_fig.save("orientation.gif", dpi=600, savefig_kwargs=dict(facecolor='xkcd:light grey'))
+velocity_animation_fig.save("velocity.gif", dpi=500, savefig_kwargs=dict(facecolor='xkcd:almost black'))
+orientation_animation_fig.save("orientation.gif", dpi=500, savefig_kwargs=dict(facecolor='xkcd:almost black'))

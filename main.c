@@ -73,12 +73,12 @@ int main(int argc, char** args){
     // defect location
     double defect_x = round(0.2 * I) + 0.5;
     double defect_y = round(0.5 * J) + 0.5;
-    double phi0 = 0.5 * M_PI;
+    double phi0 = 0.5 * M_PI;   // 0.5 * M_PI;
     double topo_charge = 0.5;
 
     //Activity pattern
     // TODO: add tanh profile
-    double pattern_angle = 0.0;  //0.1 * M_PI;
+    double pattern_angle = -0.25 * M_PI;  // 0.0;
     int rot_center_i = round(defect_x); 
     int rot_center_j = round(defect_y);
     int activity_x_start = round(I * (1.0 - AWIDTHFRAC) * 0.5);
