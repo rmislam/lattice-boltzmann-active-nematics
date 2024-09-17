@@ -92,10 +92,10 @@ int calcLobc(int l) {
     int xp2 = 0, yp2 = 0, zp2 = 0;
 
     // open boundaries on left and right, periodic boundaries on top and bottom
-    if (i_vr(l) == 0)      xp2 = I - 2; //xp2 = 1;
-    if (i_vr(l) == I - 1)  xp2 = -(I - 2); //xp2 = -1;
-    if (j_vr(l) == 0)      yp2 = I * (J - 2);
-    if (j_vr(l) == J - 1)  yp2 = -I * (J - 2);
+    if (i_vr(l) == 0)      xp2 = 1;
+    if (i_vr(l) == I - 1)  xp2 = -1;
+    if (j_vr(l) == 0)      yp2 = I;
+    if (j_vr(l) == J - 1)  yp2 = -I;
 
     return (l + xp2 + yp2 + zp2);
 }
