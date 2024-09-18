@@ -12,7 +12,7 @@ char FILE_NAME[80] = "output/active_nematic";
 #define NMAX (I*J)
 
 //Total number of time steps in the simulation
-#define TIME_STEPS 20000 
+#define TIME_STEPS 16000 
 //On how many steps the fields are written to a file
 #define TIME_WRITE 50
 
@@ -22,11 +22,14 @@ char FILE_NAME[80] = "output/active_nematic";
 //Number of CPU cores for the paralelisation
 int STPROC = 2;
 
+//Free energy elastic constant
+#define L 0.1
+
 //Free energy phase parameter
 #define C 0.1 // 1.
 
 //Time step
-#define DT 0.0001 //0.01
+#define DT 0.001 // 0.0001
 
 //relaxation time of the Lb scheme
 #define TAUF (2.0 * DT)
@@ -35,13 +38,13 @@ int STPROC = 2;
 #define	DENSITYINIT (2.0 / DT)
 
 //Alignment parameter
-#define LAMBDA 1.1
+#define LAMBDA 0.7  // 1.1
 
 //Ekman linear friction coefficient
 #define MU 0.01
 
 //Activity
-#define ALPHA 5.
+#define ALPHA 1. //5.
 
 //Logical markers for bulk and boundary points
 #define LMARKBULK 2    //bulk

@@ -59,8 +59,8 @@ void compute_Q_laplacian(int l, double* Q_laplacian) {
 //Compute the elastic contribution to the Q-tensor dynamics
 void compute_u1(int l, double* Q_laplacian, double* u1) {
     double temp = 4 * (Q[0][l] * Q[0][l] + Q[1][l] * Q[1][l]);
-    u1[0] = Q_laplacian[0] - 2 * C * Q[0][l] * (temp - 1.0);
-    u1[1] = Q_laplacian[1] - 2 * C * Q[1][l] * (temp - 1.0);
+    u1[0] = L * Q_laplacian[0] - 2 * C * Q[0][l] * (temp - 1.0);
+    u1[1] = L * Q_laplacian[1] - 2 * C * Q[1][l] * (temp - 1.0);
     
     /*
     double degree_of_order = 1.;

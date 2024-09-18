@@ -71,7 +71,7 @@ int main(int argc, char** args){
     initialiseE(); //Initializes the lattice vectors
 
     // defect location
-    double defect_x = round(0.1 * I + 0.5);
+    double defect_x = round(0.05 * I + 0.5);
     double defect_y = round(0.5 * J + 0.5);
     double phi0 = 0.5 * M_PI;   // 0.5 * M_PI;
     double topo_charge = 0.5;

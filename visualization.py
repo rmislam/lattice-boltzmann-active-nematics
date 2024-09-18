@@ -4,16 +4,16 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import matplotlib.animation as animation
 
-TIME_STEPS = 20000
+TIME_STEPS = 16000
 TIME_WRITE = 50
 NUM_FILES = int(TIME_STEPS / TIME_WRITE)
 DEFECT_ORDER_THRESHOLD = 0.7
 
-tri1_base_x_frac = 0.16
-tri2_base_x_frac = 0.32
-tri3_base_x_frac = 0.48
-tri4_base_x_frac = 0.64
-tri5_base_x_frac = 0.8
+tri1_base_x_frac = 0.1
+tri2_base_x_frac = 0.26
+tri3_base_x_frac = 0.42
+tri4_base_x_frac = 0.58
+tri5_base_x_frac = 0.74
 tri_base_y_frac = 0.5
 height_frac = 0.12
 half_width_frac = 0.1
