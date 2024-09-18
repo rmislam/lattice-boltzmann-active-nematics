@@ -5,14 +5,14 @@ char FILE_NAME[80] = "output/active_nematic";
 #define M_PI 3.14159265358979323846
 
 //Number of mesh points
-#define I 101
-#define J 101
+#define I 201
+#define J 61  // 41
 
 //Total number of points
 #define NMAX (I*J)
 
 //Total number of time steps in the simulation
-#define TIME_STEPS 30000 
+#define TIME_STEPS 20000 
 //On how many steps the fields are written to a file
 #define TIME_WRITE 50
 
@@ -23,10 +23,10 @@ char FILE_NAME[80] = "output/active_nematic";
 int STPROC = 2;
 
 //Free energy phase parameter
-#define C 1.0
+#define C 0.1 // 1.
 
 //Time step
-#define DT 0.005 //0.01
+#define DT 0.0001 //0.01
 
 //relaxation time of the Lb scheme
 #define TAUF (2.0 * DT)
@@ -35,13 +35,13 @@ int STPROC = 2;
 #define	DENSITYINIT (2.0 / DT)
 
 //Alignment parameter
-#define LAMBDA 1.1  // 0.7
+#define LAMBDA 1.1
 
 //Ekman linear friction coefficient
 #define MU 0.01
 
 //Activity
-#define ALPHA 0.05
+#define ALPHA 5.
 
 //Logical markers for bulk and boundary points
 #define LMARKBULK 2    //bulk

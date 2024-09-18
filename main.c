@@ -71,31 +71,17 @@ int main(int argc, char** args){
     initialiseE(); //Initializes the lattice vectors
 
     // defect location
-    double defect_x = round(0.2 * I + 0.5);
+    double defect_x = round(0.1 * I + 0.5);
     double defect_y = round(0.5 * J + 0.5);
     double phi0 = 0.5 * M_PI;   // 0.5 * M_PI;
     double topo_charge = 0.5;
-
-    //Activity pattern
-    // TODO: add tanh profile
-    double pattern_angle = 0.0; //-0.25 * M_PI;  // 0.0;
-    int rot_center_i = round(defect_x); 
-    int rot_center_j = round(defect_y);
-    int activity_x_start = round(I * (1.0 - AWIDTHFRAC) * 0.5);
-    int activity_x_end = I - 1 - round(I * (1.0 - AWIDTHFRAC) * 0.5);
-    int activity_y_start = round(J * (1.0 - AHEIGHTFRAC) * 0.5);
-    int activity_y_end = J - 1 - round(J * (1.0 - AHEIGHTFRAC) * 0.5);
 
     for (int l = 0; l < NMAX; l++) {
         //Logical markers
         if (i_vr(l) == 0 || i_vr(l) == I - 1 || j_vr(l) == 0 || j_vr(l) == J - 1) LMARK[l] = LMARKBC;
         else LMARK[l] = LMARKBULK;
 
-        struct point rot;
-        rot = rotate_point(l, rot_center_i, rot_center_j, -1.0 * pattern_angle);
-
-        //if (i_vr(l) >= activity_x_start && i_vr(l) <= activity_x_end && j_vr(l) >= activity_y_start && j_vr(l) <= activity_y_end) ACTIVITY[l] = ALPHA;
-        if (rot.i >= activity_x_start && rot.i <= activity_x_end && rot.j >= activity_y_start && rot.j <= activity_y_end) ACTIVITY[l] = ALPHA;
+        if (isPointInActivityPattern(l)) ACTIVITY[l] = ALPHA;
         else ACTIVITY[l] = 0.0;
         
         //Velocity Field
@@ -108,7 +94,8 @@ int main(int argc, char** args){
         double dx_defect = (double)i_vr(l) - defect_x;
         double dy_defect = (double)j_vr(l) - defect_y;
         //angle = phi0 + topo_charge * atan2(dy_defect, dx_defect);
-        angle = phi0 + (1.0 - abs(dy_defect) / defect_y) * topo_charge * atan2(dy_defect, dx_defect);  // TODO: generalize this to work with the defect not being at the y midpoint
+        //angle = phi0 + (1.0 - abs(dy_defect) / defect_y) * topo_charge * atan2(dy_defect, dx_defect);  // TODO: generalize this to work with the defect not being at the y midpoint
+        angle = phi0 + cos(0.5 * M_PI * abs(dy_defect) / defect_y) * topo_charge * atan2(dy_defect, dx_defect);
         //angle = M_PI * (double)rand() / (double)((unsigned)RAND_MAX + 1);  // randomly initialize Q tensor
         double degree_of_order = 1.;
         Q[0][l] = degree_of_order / 2.0 * cos(2 * angle);   //Qxx component

@@ -1,3 +1,5 @@
+#include <stdbool.h>
+
 struct point {
     int i;
     int j;    
@@ -88,4 +90,57 @@ struct point rotate_point(int l, int i_center, int j_center, double angle) {
     point_rot.i = round(i_center + cosTheta * rel_i - sinTheta * rel_j);
     point_rot.j = round(j_center - (sinTheta * rel_i + cosTheta * rel_j));
     return point_rot;
+}
+
+bool isPointInActivityPattern(int l) {
+    int i = i_vr(l);
+    int j = j_vr(l);
+
+    // triangles are isosceles pointing right
+    // triangle 1 (leftmost)
+    int base_center_x = round(0.16 * I + 0.5);
+    int base_center_y = round(0.5 * J + 0.5);
+    int height = round(0.12 * I + 0.5);
+    int half_width = round(0.1 * J + 0.5);
+
+    // check if point is in triangle
+    if (i >= base_center_x && i <= base_center_x + height) {
+        if (abs(j - base_center_y) <= half_width * (1. - (i - base_center_x) / height)) {
+            return true;
+        }
+    }
+
+    base_center_x = round(0.32 * I + 0.5);
+
+    if (i >= base_center_x && i <= base_center_x + height) {
+        if (abs(j - base_center_y) <= half_width * (1. - (i - base_center_x) / height)) {
+            return true;
+        }
+    }
+
+    base_center_x = round(0.48 * I + 0.5);
+
+    if (i >= base_center_x && i <= base_center_x + height) {
+        if (abs(j - base_center_y) <= half_width * (1. - (i - base_center_x) / height)) {
+            return true;
+        }
+    }
+
+    base_center_x = round(0.64 * I + 0.5);
+
+    if (i >= base_center_x && i <= base_center_x + height) {
+        if (abs(j - base_center_y) <= half_width * (1. - (i - base_center_x) / height)) {
+            return true;
+        }
+    }
+
+    base_center_x = round(0.8 * I + 0.5);
+
+    if (i >= base_center_x && i <= base_center_x + height) {
+        if (abs(j - base_center_y) <= half_width * (1. - (i - base_center_x) / height)) {
+            return true;
+        }
+    }
+
+    return false;
 }
