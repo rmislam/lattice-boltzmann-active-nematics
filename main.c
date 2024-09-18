@@ -71,14 +71,14 @@ int main(int argc, char** args){
     initialiseE(); //Initializes the lattice vectors
 
     // defect location
-    double defect_x = round(0.2 * I) + 0.5;
-    double defect_y = round(0.5 * J) + 0.5;
+    double defect_x = round(0.2 * I + 0.5);
+    double defect_y = round(0.5 * J + 0.5);
     double phi0 = 0.5 * M_PI;   // 0.5 * M_PI;
     double topo_charge = 0.5;
 
     //Activity pattern
     // TODO: add tanh profile
-    double pattern_angle = -0.25 * M_PI;  // 0.0;
+    double pattern_angle = 0.0; //-0.25 * M_PI;  // 0.0;
     int rot_center_i = round(defect_x); 
     int rot_center_j = round(defect_y);
     int activity_x_start = round(I * (1.0 - AWIDTHFRAC) * 0.5);
@@ -107,7 +107,8 @@ int main(int argc, char** args){
         //Q tensor
         double dx_defect = (double)i_vr(l) - defect_x;
         double dy_defect = (double)j_vr(l) - defect_y;
-        angle = phi0 + topo_charge * atan2(dy_defect, dx_defect);
+        //angle = phi0 + topo_charge * atan2(dy_defect, dx_defect);
+        angle = phi0 + (1.0 - abs(dy_defect) / defect_y) * topo_charge * atan2(dy_defect, dx_defect);  // TODO: generalize this to work with the defect not being at the y midpoint
         //angle = M_PI * (double)rand() / (double)((unsigned)RAND_MAX + 1);  // randomly initialize Q tensor
         double degree_of_order = 1.;
         Q[0][l] = degree_of_order / 2.0 * cos(2 * angle);   //Qxx component

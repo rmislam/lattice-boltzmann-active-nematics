@@ -29,6 +29,7 @@ void compute_LB_step() {
         }
     }
     
+    computeBounceBack();
     calcFNEW2F();   //Copies FNEW to F
     
     //Compute the velocity field
@@ -71,7 +72,6 @@ void computeP() {
     }
 }
 
-
 //Enforce open boundaries
 void computeOBC_LB() {
     #pragma omp parallel for num_threads(STPROC) schedule(dynamic)
@@ -87,7 +87,7 @@ void computeOBC_LB() {
     }
 }
 
-//Coumpute the index of the open boundary
+//Compute the index of the open boundary
 int calcLobc(int l) {
     int xp2 = 0, yp2 = 0, zp2 = 0;
 
@@ -107,6 +107,39 @@ int calcLBlnew(int l, int m) {
     j = j_vr(l) + E[m][1];
     return i + j * I;
 }
+
+//Enforce bounce back for no-slip velocity condition
+void computeBounceBack() {
+    #pragma omp parallel for num_threads(STPROC) schedule(dynamic)
+    for (int l = 0; l < NMAX; l++) {
+        if (j_vr(l) <= 1) {
+            FNEW[4][l] = F[2][l];
+            FNEW[7][l] = F[5][l];
+            FNEW[8][l] = F[6][l];
+        } else if (j_vr(l) >= J - 2) {
+            FNEW[2][l] = F[4][l];
+            FNEW[5][l] = F[7][l];
+            FNEW[6][l] = F[8][l];
+        }
+    }
+}
+
+/*
+void computeBounceBack() {
+    #pragma omp parallel for num_threads(STPROC) schedule(dynamic)
+    for (int l = 0; l < NMAX; l++) {
+        if (j_vr(l) <= 1) {
+            FNEW[4][l] = FNEW[2][l];
+            FNEW[7][l] = FNEW[5][l];
+            FNEW[8][l] = FNEW[6][l];
+        } else if (j_vr(l) >= J - 2) {
+            FNEW[2][l] = FNEW[4][l];
+            FNEW[5][l] = FNEW[7][l];
+            FNEW[6][l] = FNEW[8][l];
+        }
+    }
+}
+*/
 
 //Copies FNEW to F
 void calcFNEW2F() {

@@ -4,13 +4,13 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import matplotlib.animation as animation
 
-TIME_STEPS = 16000
+TIME_STEPS = 30000
 TIME_WRITE = 50
 NUM_FILES = int(TIME_STEPS / TIME_WRITE)
 DEFECT_ORDER_THRESHOLD = 0.7
 ACTIVITY_X_WIDTH = 0.9
 ACTIVITY_Y_WIDTH = 0.2
-ROTATION_ANGLE = 0.25 * np.pi
+ROTATION_ANGLE = 0 #0.25 * np.pi
 
 fig1, ax1 = plt.subplots()
 fig1.subplots_adjust(left=0, bottom=0, right=1, top=1, wspace=None, hspace=None)
@@ -65,5 +65,5 @@ def updateAx2(i):
 # Create the animation object
 velocity_animation_fig = animation.FuncAnimation(fig1, updateAx1, frames=NUM_FILES, interval=100, blit=True, repeat_delay=2,)
 orientation_animation_fig = animation.FuncAnimation(fig2, updateAx2, frames=NUM_FILES, interval=100, blit=True, repeat_delay=2,)
-velocity_animation_fig.save("velocity.gif", dpi=500, savefig_kwargs=dict(facecolor='xkcd:almost black'))
-orientation_animation_fig.save("orientation.gif", dpi=500, savefig_kwargs=dict(facecolor='xkcd:almost black'))
+velocity_animation_fig.save("velocity.gif", dpi=300, savefig_kwargs=dict(facecolor='xkcd:almost black'))
+orientation_animation_fig.save("orientation.gif", dpi=300, savefig_kwargs=dict(facecolor='xkcd:almost black'))

@@ -10,6 +10,7 @@ void write_orientation(int t);
 void computeFeq();
 void compute_LB_step();
 void computeP();
+void computeBounceBack();
 void computeOBC_LB();
 int calcLobc(int l);
 int calcLBlnew(int l, int m);

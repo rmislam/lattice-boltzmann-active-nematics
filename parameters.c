@@ -5,14 +5,14 @@ char FILE_NAME[80] = "output/active_nematic";
 #define M_PI 3.14159265358979323846
 
 //Number of mesh points
-#define I 121
-#define J 121
+#define I 101
+#define J 101
 
 //Total number of points
 #define NMAX (I*J)
 
 //Total number of time steps in the simulation
-#define TIME_STEPS 16000 
+#define TIME_STEPS 30000 
 //On how many steps the fields are written to a file
 #define TIME_WRITE 50
 
@@ -26,7 +26,7 @@ int STPROC = 2;
 #define C 1.0
 
 //Time step
-#define DT 0.01
+#define DT 0.005 //0.01
 
 //relaxation time of the Lb scheme
 #define TAUF (2.0 * DT)
@@ -41,7 +41,7 @@ int STPROC = 2;
 #define MU 0.01
 
 //Activity
-#define ALPHA 0.2
+#define ALPHA 0.05
 
 //Logical markers for bulk and boundary points
 #define LMARKBULK 2    //bulk
