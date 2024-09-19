@@ -10,12 +10,12 @@ NUM_FILES = int(TIME_STEPS / TIME_WRITE)
 DEFECT_ORDER_THRESHOLD = 0.7
 
 tri1_base_x_frac = 0.1
-tri2_base_x_frac = 0.26
-tri3_base_x_frac = 0.42
-tri4_base_x_frac = 0.58
-tri5_base_x_frac = 0.74
+tri2_base_x_frac = 0.27
+tri3_base_x_frac = 0.44
+tri4_base_x_frac = 0.61
+tri5_base_x_frac = 0.78
 tri_base_y_frac = 0.5
-height_frac = 0.12
+height_frac = 0.15
 half_width_frac = 0.1
 
 fig1, ax1 = plt.subplots()

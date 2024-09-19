@@ -100,7 +100,7 @@ bool isPointInActivityPattern(int l) {
     // triangle 1 (leftmost)
     int base_center_x = round(0.1 * I + 0.5);
     int base_center_y = round(0.5 * J + 0.5);
-    int height = round(0.12 * I + 0.5);
+    int height = round(0.15 * I + 0.5);
     int half_width = round(0.1 * J + 0.5);
 
     // check if point is in triangle
@@ -110,7 +110,7 @@ bool isPointInActivityPattern(int l) {
         }
     }
 
-    base_center_x = round(0.26 * I + 0.5);
+    base_center_x = round(0.27 * I + 0.5);
 
     if (i >= base_center_x && i <= base_center_x + height) {
         if (abs(j - base_center_y) <= half_width * (1. - (i - base_center_x) / height)) {
@@ -118,7 +118,7 @@ bool isPointInActivityPattern(int l) {
         }
     }
 
-    base_center_x = round(0.42 * I + 0.5);
+    base_center_x = round(0.44 * I + 0.5);
 
     if (i >= base_center_x && i <= base_center_x + height) {
         if (abs(j - base_center_y) <= half_width * (1. - (i - base_center_x) / height)) {
@@ -126,7 +126,7 @@ bool isPointInActivityPattern(int l) {
         }
     }
 
-    base_center_x = round(0.58 * I + 0.5);
+    base_center_x = round(0.61 * I + 0.5);
 
     if (i >= base_center_x && i <= base_center_x + height) {
         if (abs(j - base_center_y) <= half_width * (1. - (i - base_center_x) / height)) {
@@ -134,7 +134,7 @@ bool isPointInActivityPattern(int l) {
         }
     }
 
-    base_center_x = round(0.74 * I + 0.5);
+    base_center_x = round(0.78 * I + 0.5);
 
     if (i >= base_center_x && i <= base_center_x + height) {
         if (abs(j - base_center_y) <= half_width * (1. - (i - base_center_x) / height)) {

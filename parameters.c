@@ -5,8 +5,8 @@ char FILE_NAME[80] = "output/active_nematic";
 #define M_PI 3.14159265358979323846
 
 //Number of mesh points
-#define I 201
-#define J 61  // 41
+#define I 151
+#define J 41  // 41
 
 //Total number of points
 #define NMAX (I*J)
@@ -23,16 +23,16 @@ char FILE_NAME[80] = "output/active_nematic";
 int STPROC = 2;
 
 //Free energy elastic constant
-#define L 0.1
+#define L 0.1 // 1.
 
 //Free energy phase parameter
-#define C 0.1 // 1.
+#define C 0.01 //0.1 // 1.  // -0.01
 
 //Time step
-#define DT 0.001 // 0.0001
+#define DT 0.001 // 0.002 // 0.0001   // try 0.01 or 0.005
 
 //relaxation time of the Lb scheme
-#define TAUF (2.0 * DT)
+#define TAUF (1.0 * DT)  // must be greater than 0.5 * DT
 
 //Density parameter
 #define	DENSITYINIT (2.0 / DT)
@@ -44,7 +44,7 @@ int STPROC = 2;
 #define MU 0.01
 
 //Activity
-#define ALPHA 1. //5.
+#define ALPHA 0.4 // 1. //5.  // try 0.2 or 0.3 // 0.4 is working
 
 //Logical markers for bulk and boundary points
 #define LMARKBULK 2    //bulk

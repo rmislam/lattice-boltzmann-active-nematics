@@ -124,23 +124,6 @@ void computeBounceBack() {
     }
 }
 
-/*
-void computeBounceBack() {
-    #pragma omp parallel for num_threads(STPROC) schedule(dynamic)
-    for (int l = 0; l < NMAX; l++) {
-        if (j_vr(l) <= 1) {
-            FNEW[4][l] = FNEW[2][l];
-            FNEW[7][l] = FNEW[5][l];
-            FNEW[8][l] = FNEW[6][l];
-        } else if (j_vr(l) >= J - 2) {
-            FNEW[2][l] = FNEW[4][l];
-            FNEW[5][l] = FNEW[7][l];
-            FNEW[6][l] = FNEW[8][l];
-        }
-    }
-}
-*/
-
 //Copies FNEW to F
 void calcFNEW2F() {
     #pragma omp parallel for num_threads(STPROC) schedule(dynamic)
