@@ -7,7 +7,7 @@ import matplotlib.animation as animation
 TIME_STEPS = 16000
 TIME_WRITE = 50
 NUM_FILES = int(TIME_STEPS / TIME_WRITE)
-DEFECT_ORDER_THRESHOLD = 0.7
+DEFECT_ORDER_THRESHOLD = 0.65
 
 tri1_base_x_frac = 0.1
 tri2_base_x_frac = 0.27
@@ -147,5 +147,5 @@ def updateAx2(i):
 # Create the animation object
 velocity_animation_fig = animation.FuncAnimation(fig1, updateAx1, frames=NUM_FILES, interval=100, blit=True, repeat_delay=2,)
 orientation_animation_fig = animation.FuncAnimation(fig2, updateAx2, frames=NUM_FILES, interval=100, blit=True, repeat_delay=2,)
-velocity_animation_fig.save("velocity.gif", dpi=300, savefig_kwargs=dict(facecolor='xkcd:off white'))
-orientation_animation_fig.save("orientation.gif", dpi=300, savefig_kwargs=dict(facecolor='xkcd:off white'))
+velocity_animation_fig.save("velocity.gif", dpi=500, savefig_kwargs=dict(facecolor='xkcd:off white'))
+orientation_animation_fig.save("orientation.gif", dpi=500, savefig_kwargs=dict(facecolor='xkcd:off white'))
