@@ -61,18 +61,6 @@ void compute_u1(int l, double* Q_laplacian, double* u1) {
     double temp = 4 * (Q[0][l] * Q[0][l] + Q[1][l] * Q[1][l]);
     u1[0] = L * Q_laplacian[0] - 2 * C * Q[0][l] * (temp - 1.0);
     u1[1] = L * Q_laplacian[1] - 2 * C * Q[1][l] * (temp - 1.0);
-    
-    /*
-    double degree_of_order = 1.;
-    double angle = M_PI; //0.25 * M_PI;
-    double anchoring_strength = 0.1;
-
-    if (j_vr(l) <= 1 || j_vr(l) >= J - 2) {
-        // infinite homeotropic anchoring at top and bottom
-        u1[0] -= anchoring_strength * (Q[0][l] - degree_of_order / 2.0 * cos(2 * angle));   //Qxx component
-        u1[1] -= anchoring_strength * (Q[1][l] - degree_of_order / 2.0 * sin(2 * angle));   //Qxy component
-    }
-    */
 
     //Write u1 as H in a global matrix
     H[0][l] = u1[0];
