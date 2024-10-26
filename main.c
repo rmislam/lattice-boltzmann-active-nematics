@@ -97,9 +97,18 @@ int main(int argc, char** args){
         angle = phi0 + (1.0 - abs(dy_defect) / defect_y) * topo_charge * atan2(dy_defect, dx_defect);  // TODO: generalize this to work with the defect not being at the y midpoint
         //angle = phi0 + cos(0.5 * M_PI * abs(dy_defect) / defect_y) * topo_charge * atan2(dy_defect, dx_defect);
         //angle = M_PI * (double)rand() / (double)((unsigned)RAND_MAX + 1);  // randomly initialize Q tensor
-        double degree_of_order = 1.;
-        Q[0][l] = degree_of_order / 2.0 * cos(2 * angle);   //Qxx component
-        Q[1][l] = degree_of_order / 2.0 * sin(2 * angle);   //Qxy component
+
+        // NOTE:
+        // Q = s * ([[ cos^2(theta) - 1/2,      cos(theta) * sin(theta) ],
+        //           [ cos(theta) * sin(theta), sin^2(theta) - 1/2      ]])
+        //   = (s/2) * ([[ cos(2 * theta),  sin(2 * theta)]],
+        //               [ sin(2 * theta), -cos(2 * theta)]])      // using trig identities
+        //
+        // We only store two values for Q (Q11 and Q12) since Q22 = -Q11 and Q12 = Q21
+
+        double degree_of_order = 1.;  // degree of order (s) must be between -1/2 and 1
+        Q[0][l] = degree_of_order / 2.0 * cos(2 * angle);  //Qxx component
+        Q[1][l] = degree_of_order / 2.0 * sin(2 * angle);  //Qxy component
     }
     
     //Compute distribution functions from velocity initialization
