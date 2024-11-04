@@ -58,16 +58,12 @@ void computeP() {
         //Compute the derivatives of the stress tensor and the force
         double forceX = (SIGMA[0][l + 1] - SIGMA[0][l - 1]) / 2.0 + (SIGMA[1][l + I] - SIGMA[1][l - I]) / 2.0 - MU * U[1][l];
         double forceY = (SIGMA[2][l + 1] - SIGMA[2][l - 1]) / 2.0 + (SIGMA[3][l + I] - SIGMA[3][l - I]) / 2.0 - MU * U[2][l];
-        
-//        if (i_vr(l) == I/2 && j_vr(l) == 20) printf("%lf %lf    ", forceX, forceY);
-//        if (i_vr(l) == I/2 && j_vr(l) == 20) printf("%lf %lf %f %f      ", SIGMA[0][l], SIGMA[1][l], SIGMA[2][l], SIGMA[3][l]);
-        
+
         double uF = U[1][l] * forceX + U[2][l] * forceY;  //Product of force and velocity
         for (int m = 0; m < LATTICE_VELOCITY_NUMBER; m++) {
             double ue = U[1][l] * E[m][0] + U[2][l] * E[m][1];	//Product of velocity and characteristic vectors
             double eF = E[m][0] * forceX + E[m][1] * forceY;  //Product of force and characteristic vectors
             P[m][l] = (1.0 - DT / 2.0 / TAUF) * WKONST[m] * ( 3.0 * eF - 3.0 * uF + 9.0 * ue * eF );
-//            P[m][l] = 0;
         }
     }
 }
@@ -168,15 +164,27 @@ void compute_sigma() {
     for (int l = 0; l < NMAX; l++) {
         if (!(LMARK[l] == LMARKBULK)) continue;
         // NOTE: positive activity is extensile, negative activity is contractile
-        // NOTE: Qxx = Q[0] and Qyy = -Q[0], Qxy = Qyx = Q[1], Hxx = H[0] and Hyy = -H[0], Hxy = Hyx = H[1]
+        // NOTE: Qxx = Q[0], Qyy = -Q[0], Qxy = Qyx = Q[1], and Hxx = H[0], Hyy = -H[0], Hxy = Hyx = H[1]
+        double dxQ0 = (Q[0][l + 1] - Q[0][l - 1]) / 2.0;
+        double dxQ1 = (Q[1][l + 1] - Q[1][l - 1]) / 2.0;
+        double dyQ0 = (Q[0][l + I] - Q[0][l - I]) / 2.0;
+        double dyQ1 = (Q[1][l + I] - Q[1][l - I]) / 2.0;
+        double gradQsq = dxQ0 * dxQ0 + dxQ1 * dxQ1 + dyQ0 * dyQ0 + dyQ1 * dyQ1;
+
         //xx component of the stress tensor
-        SIGMA[0][l] = -LAMBDA * H[0][l] - ACTIVITY[l] * Q[0][l];
+        SIGMA[0][l] = L * gradQsq + 4 * XI * (Q[0][l] * H[0][l] + Q[1][l] * H[1][l]) * (Q[0][l] + 0.5) - XI * (2 * (Q[0][l] * H[0][l] + Q[1][l] * H[1][l]) + H[0][l]) - 2 * L * (dxQ0 * dxQ0 + dxQ1 * dxQ1);
         //xy component of the stress tensor
-        SIGMA[1][l] = -LAMBDA * H[1][l] + Q[0][l] * H[1][l] - Q[1][l] * H[0][l] - (H[0][l] * Q[1][l] - H[1][l] * Q[0][l]) - ACTIVITY[l] * Q[1][l];
+        SIGMA[1][l] = 4 * XI * (Q[0][l] * H[0][l] + Q[1][l] * H[1][l]) * Q[1][l] - XI * H[1][l] - 2 * L * (dxQ0 * dyQ0 + dxQ1 * dyQ1) + 2 * (Q[0][l] * H[1][l] - Q[1][l] * H[0][l]);
         //yx component of the stress tensor
-        SIGMA[2][l] = -LAMBDA * H[1][l] + Q[1][l] * H[0][l] - Q[0][l] * H[1][l] - (H[1][l] * Q[0][l] - H[0][l] * Q[1][l]) - ACTIVITY[l] * Q[1][l];
+        SIGMA[2][l] = 4 * XI * (Q[0][l] * H[0][l] + Q[1][l] * H[1][l]) * Q[1][l] - XI * H[1][l] - 2 * L * (dxQ0 * dyQ0 + dxQ1 * dyQ1) + 2 * (Q[1][l] * H[0][l] - Q[0][l] * H[1][l]);
         //yy component of the stress tensor
-        SIGMA[3][l] = +LAMBDA * H[0][l] + ACTIVITY[l] * Q[0][l];
+        SIGMA[3][l] = L * gradQsq + 4 * XI * (Q[0][l] * H[0][l] + Q[1][l] * H[1][l]) * (-Q[0][l] + 0.5) - XI * (2 * (Q[0][l] * H[0][l] + Q[1][l] * H[1][l]) - H[0][l]) - 2 * L * (dyQ0 * dyQ0 + dyQ1 * dyQ1);
+
+        // add activity
+        SIGMA[0][l] -= ACTIVITY[l] * Q[0][l];
+        SIGMA[1][l] -= ACTIVITY[l] * Q[1][l];
+        SIGMA[2][l] -= ACTIVITY[l] * Q[1][l];
+        SIGMA[3][l] += ACTIVITY[l] * Q[0][l];
     }
 
     //Impose open boundaries
