@@ -24,7 +24,7 @@ void compute_FD_step() {
         double angle = 0.5 * M_PI; // vertical (homeotropic) anchoring at top and bottom boundaries  //0.25 * M_PI;
 
         // NOTE: maybe I can set this once at the beginning, and never set it again
-        if (j_vr(l) <= 1 || j_vr(l) >= J - 2) {
+        if (i_vr(l) <= 1 || i_vr(l) >= I - 2 || j_vr(l) <= 1 || j_vr(l) >= J - 2) {
             // infinite homeotropic anchoring at top and bottom
             QNEW[0][l] = degree_of_order / 2.0 * cos(2 * angle);   //Qxx component
             QNEW[1][l] = degree_of_order / 2.0 * sin(2 * angle);   //Qxy component
@@ -34,13 +34,13 @@ void compute_FD_step() {
     calcQNEW2Q();
 }
 
-//Write QNEW back to Q and implement the open boundaries
+//Write QNEW back to Q and implement the periodic boundaries
 void calcQNEW2Q() {
     #pragma omp parallel for num_threads(STPROC) schedule(dynamic)
     for (int l = 0; l < NMAX; l++) {
-        int lobc = calcLobc(l);
+        int lpbc = calcLpbc(l);
         for(int m = 0; m < 2; m++) {
-            Q[m][l] = QNEW[m][lobc];
+            Q[m][l] = QNEW[m][lpbc];
         }
     }
 }
@@ -75,7 +75,8 @@ void compute_u1(int l, double* Q_laplacian, double* u1) {
 //Compute the shear contribution to the Q-tensor dynamics
 void compute_u2(int l, double* u2) {
     double uxx = (U[1][l + 1] - U[1][l - 1]) / 2.0;
-    double uyy = -uxx;  // Remember that div u = 0 (incompressibility condition), so uxx = -uyy
+    //double uyy = -uxx;  // Remember that div u = 0 (incompressibility condition), so uxx = -uyy
+    double uyy = (U[2][l + I] - U[2][l - I]) / 2.0;
     double uxy = (U[1][l + I] - U[1][l - I]) / 2.0;
     double uyx = (U[2][l + 1] - U[2][l - 1]) / 2.0;
 

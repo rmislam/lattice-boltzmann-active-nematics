@@ -7,7 +7,7 @@ import matplotlib.animation as animation
 TIME_STEPS = 4000
 TIME_WRITE = 50
 NUM_FILES = int(TIME_STEPS / TIME_WRITE)
-DEFECT_ORDER_THRESHOLD = 0.7
+DEFECT_ORDER_THRESHOLD = 0.5
 
 tri1_base_x_frac = 0.1
 tri2_base_x_frac = 0.27

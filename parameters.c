@@ -39,7 +39,7 @@ int STPROC = 2;
 #define DT 0.01 // 0.002 // 0.0001   // try 0.01 or 0.005
 
 //relaxation time of the Lb scheme
-#define TAUF (0.55 * DT) // (1.0 * DT)  // must be greater than 0.5 * DT
+#define TAUF (1.0 * DT) // (0.55 * DT) // (1.0 * DT)  // must be greater than 0.5 * DT
 
 //Density parameter
 #define	DENSITYINIT (2.0 / DT)

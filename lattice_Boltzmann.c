@@ -18,7 +18,7 @@ void computeFeq() {
 void compute_LB_step() {
     computeFeq();   //Compute the equilibrium distribution
     computeP(); //Compute the forcing terms
-    computeOBC_LB();    //Makes the open boundary conditions for LB functions
+    computePBC_LB();    //Makes the periodic boundary conditions for LB functions
     
     #pragma omp parallel for num_threads(STPROC) schedule(dynamic)
     for (int l = 0; l < NMAX; l++) {
@@ -36,12 +36,12 @@ void compute_LB_step() {
     #pragma omp parallel for num_threads(STPROC) schedule(dynamic)
     for (int l = 0; l < NMAX; l++) calcF2U(l);
     
-    //Adapt the velocity field for OBC
+    //Adapt the velocity field for PBC
     #pragma omp parallel for num_threads(STPROC) schedule(dynamic)
 
     for(int l = 0; l < NMAX; l++) {
         for (int m = 0; m < 3; m++) {
-            U[m][l] = U[m][calcLobc(l)];
+            U[m][l] = U[m][calcLpbc(l)];
         }
     }
 }
@@ -68,30 +68,30 @@ void computeP() {
     }
 }
 
-//Enforce open boundaries
-void computeOBC_LB() {
+//Enforce periodic boundaries
+void computePBC_LB() {
     #pragma omp parallel for num_threads(STPROC) schedule(dynamic)
     for (int l = 0; l < NMAX; l++) {
         if (LMARK[l] & LMARKBC) {
-            int lobc = calcLobc(l);
+            int lpbc = calcLpbc(l);
             for (int m = 0; m < LATTICE_VELOCITY_NUMBER; m++) {
-                P[m][l] = P[m][lobc];
-                FEQ[m][l] = FEQ[m][lobc];
-                F[m][l] = F[m][lobc];
+                P[m][l] = P[m][lpbc];
+                FEQ[m][l] = FEQ[m][lpbc];
+                F[m][l] = F[m][lpbc];
             }
         }
     }
 }
 
-//Compute the index of the open boundary
-int calcLobc(int l) {
+//Compute the index of the periodic boundary
+int calcLpbc(int l) {
     int xp2 = 0, yp2 = 0, zp2 = 0;
 
-    // open boundaries on left and right, periodic boundaries on top and bottom
-    if (i_vr(l) == 0)      xp2 = 1;
-    if (i_vr(l) == I - 1)  xp2 = -1;
-    if (j_vr(l) == 0)      yp2 = I;
-    if (j_vr(l) == J - 1)  yp2 = -I;
+    // periodic boundaries on left, right, top, and bottom
+    if (i_vr(l) == 0)      xp2 = I - 2;
+    if (i_vr(l) == I - 1)  xp2 = -(I - 2);
+    if (j_vr(l) == 0)      yp2 = I * (J - 2);
+    if (j_vr(l) == J - 1)  yp2 = -I * (J - 2);
 
     return (l + xp2 + yp2 + zp2);
 }
@@ -187,13 +187,13 @@ void compute_sigma() {
         SIGMA[3][l] += ACTIVITY[l] * Q[0][l];
     }
 
-    //Impose open boundaries
+    //Impose periodic boundaries
     #pragma omp parallel for num_threads(STPROC) schedule(dynamic)
     for (int l = 0; l < NMAX; l++) {
-        int lobc = calcLobc(l);
-        if (lobc != l) {
+        int lpbc = calcLpbc(l);
+        if (lpbc != l) {
             for (int m = 0; m < 2; m++) {
-                SIGMA[m][l] = SIGMA[m][lobc];
+                SIGMA[m][l] = SIGMA[m][lpbc];
             }
         }
     }
