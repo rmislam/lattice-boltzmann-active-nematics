@@ -1,4 +1,3 @@
-
 //Make a step in the Q-tensor finite difference evolution
 void compute_FD_step() {
     #pragma omp parallel for num_threads(STPROC) schedule(dynamic)
@@ -24,7 +23,7 @@ void compute_FD_step() {
         double angle = 0.5 * M_PI; // vertical (homeotropic) anchoring at top and bottom boundaries  //0.25 * M_PI;
 
         // NOTE: maybe I can set this once at the beginning, and never set it again
-        if (j_vr(l) <= 1 || j_vr(l) >= J - 2) {
+        if (j_vr(l) == 0 || j_vr(l) == J - 1) {
             // infinite homeotropic anchoring at top and bottom
             QNEW[0][l] = degree_of_order / 2.0 * cos(2 * angle);   //Qxx component
             QNEW[1][l] = degree_of_order / 2.0 * sin(2 * angle);   //Qxy component
@@ -34,13 +33,23 @@ void compute_FD_step() {
     calcQNEW2Q();
 }
 
-//Write QNEW back to Q and implement the open boundaries
+//Write QNEW back to Q and implement the open boundaries on left and right edges
 void calcQNEW2Q() {
     #pragma omp parallel for num_threads(STPROC) schedule(dynamic)
     for (int l = 0; l < NMAX; l++) {
-        int lobc = calcLobc(l);
-        for(int m = 0; m < 2; m++) {
-            Q[m][l] = QNEW[m][lobc];
+        if (i_vr(l) == 0) {
+            for(int m = 0; m < 2; m++) {
+                Q[m][l] = QNEW[m][l + 1];
+            }
+        }
+        else if (i_vr(l) == I - 1) {
+            for(int m = 0; m < 2; m++) {
+                Q[m][l] = QNEW[m][l - 1];
+            }
+        } else {
+            for(int m = 0; m < 2; m++) {
+                Q[m][l] = QNEW[m][l];
+            }
         }
     }
 }

@@ -1,51 +1,49 @@
- //Computes equilibrium distribution function
-void computeFeq() {
-    #pragma omp parallel for num_threads(STPROC) schedule(dynamic)
-    for (int l = 0; l < NMAX; l++) {
-        if (!(LMARK[l] == LMARKBULK)) continue;
-    
-        double u2 = U[1][l] * U[1][l] + U[2][l] * U[2][l];	//Velocity squared
-    
-        for (int m = 0; m < LATTICE_VELOCITY_NUMBER; m++) {
-            double ue = U[1][l] * E[m][0] + U[2][l] * E[m][1];		//Product of velocity and characteristic vectors
-            FEQ[m][l] = WKONST[m] * U[0][l] * (1.0 + 3.0 * ue + 9.0 / 2.0 * ue * ue - 1.5 * u2);
-        }
-    }
-}
-
-
 //Makes a main step in the LB part
 void compute_LB_step() {
     computeFeq();   //Compute the equilibrium distribution
     computeP(); //Compute the forcing terms
-    computeOBC_LB();    //Makes the open boundary conditions for LB functions
     
     #pragma omp parallel for num_threads(STPROC) schedule(dynamic)
     for (int l = 0; l < NMAX; l++) {
         for (int m = 0; m < LATTICE_VELOCITY_NUMBER; m++) {
             int lnew = calcLBlnew(l, m);   //Streaming location
             if (lnew >= NMAX || lnew < 0) continue;
-            FNEW[m][lnew] = F[m][l] - DT / TAUF * (F[m][l] - FEQ[m][l]) + P[m][l];    //Streaming and collision
+            //FNEW[m][lnew] = F[m][l] - DT / TAUF * (F[m][l] - FEQ[m][l]) + P[m][l];    //Streaming and collision // boundaries are ignored (see calcFNEW2F)
+            FNEW[m][lnew] = F[m][l] + DT * ((FEQ[m][l] - F[m][l]) / TAUF + P[m][l]); 
         }
     }
     
-    computeBounceBack();
-    calcFNEW2F();   //Copies FNEW to F
+    enforceBoundaryConditions();  // NOTE: be careful about copying FNEW to F at boundaries
+    calcFNEW2F();  //Copies FNEW to F
     
     //Compute the velocity field
     #pragma omp parallel for num_threads(STPROC) schedule(dynamic)
     for (int l = 0; l < NMAX; l++) calcF2U(l);
-    
-    //Adapt the velocity field for OBC
-    #pragma omp parallel for num_threads(STPROC) schedule(dynamic)
 
-    for(int l = 0; l < NMAX; l++) {
-        for (int m = 0; m < 3; m++) {
-            U[m][l] = U[m][calcLobc(l)];
+    /*
+    // Enforce open boundary condition for velocity on right edge
+    #pragma omp parallel for num_threads(STPROC) schedule(dynamic)
+    for (int l = 0; l < NMAX; l++) {
+        if (i_vr(l) == I - 1 && j_vr(l) > 0 && j_vr(l) < J - 1) {
+            U[1][l] = U[1][l - 1];
+            U[2][l] = U[2][l - 1];
+        }
+    }
+    */
+}
+
+ //Computes equilibrium distribution function
+void computeFeq() {
+    #pragma omp parallel for num_threads(STPROC) schedule(dynamic)
+    for (int l = 0; l < NMAX; l++) {
+        double u2 = U[1][l] * U[1][l] + U[2][l] * U[2][l];	//Velocity squared
+
+        for (int m = 0; m < LATTICE_VELOCITY_NUMBER; m++) {
+            double ue = U[1][l] * E[m][0] + U[2][l] * E[m][1];		//Product of velocity and characteristic vectors
+            FEQ[m][l] = WKONST[m] * U[0][l] * (1.0 + 3.0 * ue + 9.0 / 2.0 * ue * ue - 1.5 * u2);  // NOTE: no need to modify
         }
     }
 }
-
 
 //Compute the forcing terms
 void computeP() {
@@ -63,22 +61,7 @@ void computeP() {
         for (int m = 0; m < LATTICE_VELOCITY_NUMBER; m++) {
             double ue = U[1][l] * E[m][0] + U[2][l] * E[m][1];	//Product of velocity and characteristic vectors
             double eF = E[m][0] * forceX + E[m][1] * forceY;  //Product of force and characteristic vectors
-            P[m][l] = (1.0 - DT / 2.0 / TAUF) * WKONST[m] * ( 3.0 * eF - 3.0 * uF + 9.0 * ue * eF );
-        }
-    }
-}
-
-//Enforce open boundaries
-void computeOBC_LB() {
-    #pragma omp parallel for num_threads(STPROC) schedule(dynamic)
-    for (int l = 0; l < NMAX; l++) {
-        if (LMARK[l] & LMARKBC) {
-            int lobc = calcLobc(l);
-            for (int m = 0; m < LATTICE_VELOCITY_NUMBER; m++) {
-                P[m][l] = P[m][lobc];
-                FEQ[m][l] = FEQ[m][lobc];
-                F[m][l] = F[m][lobc];
-            }
+            P[m][l] = (1.0 - DT / 2.0 / TAUF) * WKONST[m] * (3.0 * eF - 3.0 * uF + 9.0 * ue * eF);  // "source term" S_i from Kruger 6.2
         }
     }
 }
@@ -87,7 +70,7 @@ void computeOBC_LB() {
 int calcLobc(int l) {
     int xp2 = 0, yp2 = 0, zp2 = 0;
 
-    // open boundaries on left and right, periodic boundaries on top and bottom
+    // open boundaries on left and right, closed (bounce-back) boundaries on top and bottom
     if (i_vr(l) == 0)      xp2 = 1;
     if (i_vr(l) == I - 1)  xp2 = -1;
     if (j_vr(l) == 0)      yp2 = I;
@@ -105,17 +88,25 @@ int calcLBlnew(int l, int m) {
 }
 
 //Enforce bounce back for no-slip velocity condition
-void computeBounceBack() {
+void enforceBoundaryConditions() {
     #pragma omp parallel for num_threads(STPROC) schedule(dynamic)
     for (int l = 0; l < NMAX; l++) {
-        if (j_vr(l) <= 1) {
+        if (j_vr(l) == 0) {  // top edge -- no-slip
             FNEW[4][l] = F[2][l];
             FNEW[7][l] = F[5][l];
             FNEW[8][l] = F[6][l];
-        } else if (j_vr(l) >= J - 2) {
+        } else if (j_vr(l) == J - 1) {  // bottom edge -- no-slip
             FNEW[2][l] = F[4][l];
             FNEW[5][l] = F[7][l];
             FNEW[6][l] = F[8][l];
+        } else if (i_vr(l) == 0 && j_vr(l) > 0 && j_vr(l) < J - 1) {  // left edge -- constant velocity (inlet)
+            FNEW[1][l] = F[3][l] + 2.0 * U[0][l] * INLET_VELOCITY / 3.0;
+            FNEW[5][l] = F[7][l] - 0.5 * (F[2][l] - F[4][l]) + U[0][l] * INLET_VELOCITY / 6.0;
+            FNEW[8][l] = F[6][l] + 0.5 * (F[2][l] - F[4][l]) + U[0][l] * INLET_VELOCITY / 6.0;
+        } else if (i_vr(l) == I - 1 && j_vr(l) > 0 && j_vr(l) < J - 1) {  // right edge -- open (absorbing) boundary
+            FNEW[3][l] = F[3][l - 1];  // Mohamad 8.52
+            FNEW[6][l] = F[6][l - 1];
+            FNEW[7][l] = F[7][l - 1];
         }
     }
 }
@@ -124,39 +115,37 @@ void computeBounceBack() {
 void calcFNEW2F() {
     #pragma omp parallel for num_threads(STPROC) schedule(dynamic)
     for (int l = 0; l < NMAX; l++) {
-        if (LMARK[l] == LMARKBULK) {
-            for (int m = 0; m < LATTICE_VELOCITY_NUMBER; m++) {
-                F[m][l] = FNEW[m][l];
-            }
+        for (int m = 0; m < LATTICE_VELOCITY_NUMBER; m++) {
+            F[m][l] = FNEW[m][l];
         }
     }
 }
 
 //Computes velocity field from F
 void calcF2U(int l) {
-    double fex = 0.0, fey = 0.0, density = 0.0;
-  
-    if (LMARK[l] == LMARKBULK) {
+    if (j_vr(l) == 0 || j_vr(l) == J - 1) {  // top and bottom edges -- no-slip condition
+        U[1][l] = 0;
+        U[2][l] = 0;
+    } else if (i_vr(l) == 0 && j_vr(l) > 0 && j_vr(l) < J - 1) {  // left edge -- constant velocity (inlet)
+        U[1][l] = INLET_VELOCITY;
+        U[2][l] = 0;
+    } else if (LMARK[l] == LMARKBULK) {
+        double fex = 0.0, fey = 0.0, density = 0.0;
+
         for (int m = 0; m < LATTICE_VELOCITY_NUMBER; m++) {
             density += F[m][l];
             fex += F[m][l] * E[m][0];
             fey += F[m][l] * E[m][1];
         }
 
-//        double factor = 0.5f;   //Correction due to discrete lattice effects
-//        fex += factor * FORCE[1][l];
-//        fey += factor * FORCE[2][l];
-    
-        U[1][l] = fex / density - MU * U[1][l] * DT / 2.0 / density;
-        U[2][l] = fey / density - MU * U[2][l] * DT / 2.0 / density;
+        double forceX = (SIGMA[0][l + 1] - SIGMA[0][l - 1]) / 2.0 + (SIGMA[1][l + I] - SIGMA[1][l - I]) / 2.0 - MU * U[1][l];
+        double forceY = (SIGMA[2][l + 1] - SIGMA[2][l - 1]) / 2.0 + (SIGMA[3][l + I] - SIGMA[3][l - I]) / 2.0 - MU * U[2][l];
+
+        U[1][l] = fex / density + forceX * DT / 2.0 / density;  // NOTE: delete?
+        U[2][l] = fey / density + forceY * DT / 2.0 / density;
         U[0][l] = density;
-    } else {
-        U[0][l] = DENSITYINIT;
-        U[1][l] = 0;
-        U[2][l] = 0;
     }
 }
-
 
 //Compute stress tensor
 void compute_sigma() {
@@ -185,16 +174,5 @@ void compute_sigma() {
         SIGMA[1][l] -= ACTIVITY[l] * Q[1][l];
         SIGMA[2][l] -= ACTIVITY[l] * Q[1][l];
         SIGMA[3][l] += ACTIVITY[l] * Q[0][l];
-    }
-
-    //Impose open boundaries
-    #pragma omp parallel for num_threads(STPROC) schedule(dynamic)
-    for (int l = 0; l < NMAX; l++) {
-        int lobc = calcLobc(l);
-        if (lobc != l) {
-            for (int m = 0; m < 2; m++) {
-                SIGMA[m][l] = SIGMA[m][lobc];
-            }
-        }
     }
 }

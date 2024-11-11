@@ -11,12 +11,12 @@ void computeFeq();
 void compute_LB_step();
 void computeP();
 void computeBounceBack();
-void computeOBC_LB();
 int calcLobc(int l);
 int calcLBlnew(int l, int m);
 void calcFNEW2F();
 void calcF2U(int l);
 void compute_sigma();
+void enforceBoundaryConditions();
 
 //finite_difference.c
 void compute_FD_step();

@@ -44,6 +44,9 @@ int STPROC = 2;
 //Density parameter
 #define	DENSITYINIT (2.0 / DT)
 
+//Inlet velocity from left edge
+#define INLET_VELOCITY 0
+
 //Alignment parameter
 #define LAMBDA 0.7  // 1.1
 
