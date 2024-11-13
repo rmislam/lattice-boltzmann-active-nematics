@@ -40,11 +40,13 @@ void calcQNEW2Q() {
         if (i_vr(l) == 0) {
             for(int m = 0; m < 2; m++) {
                 Q[m][l] = QNEW[m][l + 1];
+                //Q[m][l] = QNEW[m][l + I - 2];
             }
         }
         else if (i_vr(l) == I - 1) {
             for(int m = 0; m < 2; m++) {
                 Q[m][l] = QNEW[m][l - 1];
+                //Q[m][l] = QNEW[m][l - (I - 2)];
             }
         } else {
             for(int m = 0; m < 2; m++) {

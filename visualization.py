@@ -4,10 +4,10 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import matplotlib.animation as animation
 
-TIME_STEPS = 4000
-TIME_WRITE = 50
+TIME_STEPS = 50000
+TIME_WRITE = 100
 NUM_FILES = int(TIME_STEPS / TIME_WRITE)
-DEFECT_ORDER_THRESHOLD = 0.05  # lower is stricter
+DEFECT_ORDER_THRESHOLD = 0.15  # lower is stricter
 
 tri1_base_x_frac = 0.1
 tri2_base_x_frac = 0.27
@@ -32,7 +32,7 @@ def updateAx1(i):
     vy = df_velocity.iloc[:, 4]
 
     ax1.clear()
-    im = ax1.quiver(x, y, vx, vy, width=0.0005, color='xkcd:royal blue')
+    im = ax1.quiver(x, y, vx, vy, pivot='mid', width=0.0005, color='xkcd:royal blue')
     ax1.set_axis_off()
     xmin, xmax = np.min(x), np.max(x)
     ymin, ymax = np.min(y), np.max(y)
@@ -92,10 +92,11 @@ def updateAx2(i):
 
     x_defects = x.loc[order <= DEFECT_ORDER_THRESHOLD]
     y_defects = y.loc[order <= DEFECT_ORDER_THRESHOLD]
+    #from IPython import embed; embed()
 
     ax2.clear()
     im = ax2.scatter(x_defects, y_defects, c='xkcd:azure')
-    im = ax2.quiver(x, y, cos, sin, width=0.0005, color='xkcd:royal blue', headlength=0, headaxislength=0)  # headless quivers for nematics
+    im = ax2.quiver(x, y, cos, sin, pivot='mid', width=0.0005, color='xkcd:royal blue', headlength=0, headaxislength=0)  # headless quivers for nematics
     ax2.set_axis_off()
     xmin, xmax = np.min(x), np.max(x)
     ymin, ymax = np.min(y), np.max(y)
@@ -145,7 +146,7 @@ def updateAx2(i):
     return im,
 
 # Create the animation object
-velocity_animation_fig = animation.FuncAnimation(fig1, updateAx1, frames=NUM_FILES, interval=100, blit=True, repeat_delay=2,)
-orientation_animation_fig = animation.FuncAnimation(fig2, updateAx2, frames=NUM_FILES, interval=100, blit=True, repeat_delay=2,)
-velocity_animation_fig.save("velocity.gif", dpi=500, savefig_kwargs=dict(facecolor='xkcd:white'))
-orientation_animation_fig.save("orientation.gif", dpi=500, savefig_kwargs=dict(facecolor='xkcd:white'))
+velocity_animation_fig = animation.FuncAnimation(fig1, updateAx1, frames=NUM_FILES, interval=20, blit=True, repeat_delay=2,)
+orientation_animation_fig = animation.FuncAnimation(fig2, updateAx2, frames=NUM_FILES, interval=20, blit=True, repeat_delay=2,)
+velocity_animation_fig.save("velocity.gif", dpi=400, savefig_kwargs=dict(facecolor='xkcd:white'))
+orientation_animation_fig.save("orientation.gif", dpi=400, savefig_kwargs=dict(facecolor='xkcd:white'))

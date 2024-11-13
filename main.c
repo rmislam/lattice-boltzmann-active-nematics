@@ -72,7 +72,8 @@ int main(int argc, char** args){
 
     // defect location
     double defect_x = round(0.05 * I + 0.5);
-    double defect_y = round(0.5 * J + 0.5);
+    //double defect_x = round(0.24 * I - 0.5);
+    double defect_y = round(0.5 * J - 0.5);
     double phi0 = 0.5 * M_PI;   // 0.5 * M_PI;
     double topo_charge = 0.5;
 
@@ -94,7 +95,11 @@ int main(int argc, char** args){
         double dx_defect = (double)i_vr(l) - defect_x;
         double dy_defect = (double)j_vr(l) - defect_y;
         //angle = phi0 + topo_charge * atan2(dy_defect, dx_defect);
-        angle = phi0 + (1.0 - abs(dy_defect) / defect_y) * topo_charge * atan2(dy_defect, dx_defect);  // TODO: generalize this to work with the defect not being at the y midpoint
+        angle = phi0;
+
+        if (dx_defect <= 0) {
+            angle += (1.0 - abs(dy_defect) / defect_y) * topo_charge * atan2(dy_defect, dx_defect);  // TODO: generalize this to work with the defect not being at the y midpoint
+        }
         //angle = phi0 + cos(0.5 * M_PI * abs(dy_defect) / defect_y) * topo_charge * atan2(dy_defect, dx_defect);
         //angle = M_PI * (double)rand() / (double)((unsigned)RAND_MAX + 1);  // randomly initialize Q tensor
 

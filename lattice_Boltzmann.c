@@ -66,6 +66,7 @@ void computeP() {
     }
 }
 
+/*
 //Compute the index of the open boundary
 int calcLobc(int l) {
     int xp2 = 0, yp2 = 0, zp2 = 0;
@@ -78,6 +79,7 @@ int calcLobc(int l) {
 
     return (l + xp2 + yp2 + zp2);
 }
+*/
 
 //Computes streaming location
 int calcLBlnew(int l, int m) {
@@ -99,14 +101,28 @@ void enforceBoundaryConditions() {
             FNEW[2][l] = F[4][l];
             FNEW[5][l] = F[7][l];
             FNEW[6][l] = F[8][l];
-        } else if (i_vr(l) == 0 && j_vr(l) > 0 && j_vr(l) < J - 1) {  // left edge -- constant velocity (inlet)
+        } else if (i_vr(l) == 0 && j_vr(l) > 0 && j_vr(l) < J - 1) {  // left edge -- open (absorbing) boundary
             FNEW[1][l] = F[3][l] + 2.0 * U[0][l] * INLET_VELOCITY / 3.0;
             FNEW[5][l] = F[7][l] - 0.5 * (F[2][l] - F[4][l]) + U[0][l] * INLET_VELOCITY / 6.0;
             FNEW[8][l] = F[6][l] + 0.5 * (F[2][l] - F[4][l]) + U[0][l] * INLET_VELOCITY / 6.0;
+            //FNEW[1][l] = F[1][l + 1];  // OBC
+            //FNEW[5][l] = F[5][l + 1];
+            //FNEW[8][l] = F[8][l + 1];
+            //for (int m = 0; m < LATTICE_VELOCITY_NUMBER; m++) {
+            //    FNEW[m][l] = F[m][l + 1];
+            //}
+            //FNEW[1][l] = F[1][l + I - 2];  // PBC
         } else if (i_vr(l) == I - 1 && j_vr(l) > 0 && j_vr(l) < J - 1) {  // right edge -- open (absorbing) boundary
-            FNEW[3][l] = F[3][l - 1];  // Mohamad 8.52
-            FNEW[6][l] = F[6][l - 1];
-            FNEW[7][l] = F[7][l - 1];
+            //FNEW[3][l] = F[1][l] - 2.0 * U[0][l] * INLET_VELOCITY / 3.0;
+            //FNEW[7][l] = F[5][l] + 0.5 * (F[2][l] - F[4][l]) - U[0][l] * INLET_VELOCITY / 6.0;
+            //FNEW[6][l] = F[8][l] - 0.5 * (F[2][l] - F[4][l]) - U[0][l] * INLET_VELOCITY / 6.0;
+            //FNEW[3][l] = F[3][l - 1];  //OBC // Mohamad 8.52
+            //FNEW[6][l] = F[6][l - 1];
+            //FNEW[7][l] = F[7][l - 1];
+            for (int m = 0; m < LATTICE_VELOCITY_NUMBER; m++) {
+                FNEW[m][l] = F[m][l - 1];
+            }
+            //FNEW[1][l] = F[1][l - (I - 2)];  // PBC
         }
     }
 }
@@ -129,6 +145,16 @@ void calcF2U(int l) {
     } else if (i_vr(l) == 0 && j_vr(l) > 0 && j_vr(l) < J - 1) {  // left edge -- constant velocity (inlet)
         U[1][l] = INLET_VELOCITY;
         U[2][l] = 0;
+    /*
+    } else if (i_vr(l) == 0 && j_vr(l) > 0 && j_vr(l) < J - 1) {  // left edge -- open (absorbing) boundary / zero gradient BC
+        U[0][l] = U[0][l + 1];
+        U[1][l] = U[1][l + 1];
+        U[2][l] = U[2][l + 1];
+    */
+    } else if (i_vr(l) == I - 1 && j_vr(l) > 0 && j_vr(l) < J - 1) {  // right edge -- open (absorbing) boundary
+        U[0][l] = U[0][l - 1];
+        U[1][l] = U[1][l - 1];
+        U[2][l] = U[2][l - 1];
     } else if (LMARK[l] == LMARKBULK) {
         double fex = 0.0, fey = 0.0, density = 0.0;
 
