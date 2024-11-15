@@ -60,8 +60,11 @@ int STPROC = 2;
 #define ALPHA 0.22 // 1. //5.  // try 0.2 or 0.3 // 0.4 is working
 
 //Logical markers for bulk and boundary points
-#define LMARKBULK 2    //bulk
-#define LMARKBC 4      //boundary condition
+#define LMARKBULK 2      //bulk
+#define LMARKBC 4        //boundary condition
+#define LMARKOBSSIDE 6   //side of obstacle
+#define LMARKOBSTOP 8    //to of obstacle
+#define LMARKOBSBULK 10  //bulk (interior) of obstacle
 
 //Activity pattern width and height fractions
 #define AWIDTHFRAC 0.9

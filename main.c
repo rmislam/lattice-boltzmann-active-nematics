@@ -77,10 +77,23 @@ int main(int argc, char** args){
     double phi0 = 0.5 * M_PI;   // 0.5 * M_PI;
     double topo_charge = 0.5;
 
+    int obs_top_row = round(0.25 * J - 0.5);
+    int obs_left_col = round(0.20 * I - 0.5);
+    int obs_right_col = round(0.40 * I - 0.5);
+
     for (int l = 0; l < NMAX; l++) {
         //Logical markers
-        if (i_vr(l) == 0 || i_vr(l) == I - 1 || j_vr(l) == 0 || j_vr(l) == J - 1) LMARK[l] = LMARKBC;
-        else LMARK[l] = LMARKBULK;
+        if (i_vr(l) == 0 || i_vr(l) == I - 1 || j_vr(l) == 0 || j_vr(l) == J - 1) {
+            LMARK[l] = LMARKBC;
+        } else if (j_vr(l) <= obs_top_row && (i_vr(l) == obs_left_col || i_vr(l) == obs_right_col)) {
+            LMARK[l] = LMARKOBSSIDE;
+        } else if (j_vr(l) == obs_top_row && i_vr(l) > obs_left_col && i_vr(l) < obs_right_col) {
+            LMARK[l] = LMARKOBSTOP;
+        } else if (j_vr(l) < obs_top_row && i_vr(l) > obs_left_col && i_vr(l) < obs_right_col) {
+            LMARK[l] = LMARKOBSBULK;
+        } else {
+            LMARK[l] = LMARKBULK;
+        }
 
         if (isPointInActivityPattern(l)) ACTIVITY[l] = ALPHA;
         else ACTIVITY[l] = 0.0;
