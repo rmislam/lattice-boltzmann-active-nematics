@@ -85,12 +85,20 @@ int main(int argc, char** args){
         //Logical markers
         if (i_vr(l) == 0 || i_vr(l) == I - 1 || j_vr(l) == 0 || j_vr(l) == J - 1) {
             LMARK[l] = LMARKBC;
-        } else if (j_vr(l) <= obs_top_row && (i_vr(l) == obs_left_col || i_vr(l) == obs_right_col)) {
-            LMARK[l] = LMARKOBSSIDE;
+        } else if (j_vr(l) < obs_top_row) {
+            if (i_vr(l) == obs_left_col) {
+                LMARK[l] = LMARKOBSLEFT;
+            } else if (i_vr(l) == obs_right_col) {
+                LMARK[l] = LMARKOBSRIGHT;
+            }
         } else if (j_vr(l) == obs_top_row && i_vr(l) > obs_left_col && i_vr(l) < obs_right_col) {
             LMARK[l] = LMARKOBSTOP;
         } else if (j_vr(l) < obs_top_row && i_vr(l) > obs_left_col && i_vr(l) < obs_right_col) {
             LMARK[l] = LMARKOBSBULK;
+        } else if (j_vr(l) == obs_top_row && i_vr(l) == obs_left_col) {
+            LMARK[l] = LMARKOBS_LEFT_CORNER;
+        } else if (j_vr(l) == obs_top_row && i_vr(l) == obs_right_col) {
+            LMARK[l] = LMARKOBS_RIGHT_CORNER;
         } else {
             LMARK[l] = LMARKBULK;
         }
