@@ -76,30 +76,31 @@ int main(int argc, char** args){
     double phi0 = 0.5 * M_PI;   // 0.5 * M_PI;
     double topo_charge = 0.5;
 
-    //int obs_top_row = round(0.25 * J - 0.5);
-    //int obs_left_col = round(0.20 * I - 0.5);
-    //int obs_right_col = round(0.40 * I - 0.5);
+    int obs_top_row = round(0.25 * J - 0.5);
+    int obs_bot_row = round(0.25 * J - 0.5);
+    int obs_left_col = round(0.20 * I - 0.5);
+    int obs_right_col = round(0.40 * I - 0.5);
 
     for (int l = 0; l < NMAX; l++) {
         //Logical markers
-        if (i_vr(l) == 0 || i_vr(l) == I - 1 || j_vr(l) == 0 || j_vr(l) == J - 1) {
-            LMARK[l] = LMARKBC;
-        /*
-        } else if (j_vr(l) < obs_top_row) {
-            if (i_vr(l) == obs_left_col) {
-                LMARK[l] = LMARKOBSLEFT;
-            } else if (i_vr(l) == obs_right_col) {
-                LMARK[l] = LMARKOBSRIGHT;
-            }
-        } else if (j_vr(l) == obs_top_row && i_vr(l) > obs_left_col && i_vr(l) < obs_right_col) {
-            LMARK[l] = LMARKOBSTOP;
+        if (j_vr(l) < obs_top_row && j_vr(l) > 0 && i_vr(l) == obs_left_col) {
+            LMARK[l] = LMARKOBSLEFT;
+        } else if (j_vr(l) < obs_top_row && j_vr(l) > 0 && i_vr(l) == obs_right_col) {
+            LMARK[l] = LMARKOBSRIGHT;
         } else if (j_vr(l) < obs_top_row && i_vr(l) > obs_left_col && i_vr(l) < obs_right_col) {
             LMARK[l] = LMARKOBSBULK;
+        } else if (j_vr(l) == obs_top_row && i_vr(l) > obs_left_col && i_vr(l) < obs_right_col) {
+            LMARK[l] = LMARKOBSTOP;
         } else if (j_vr(l) == obs_top_row && i_vr(l) == obs_left_col) {
-            LMARK[l] = LMARKOBS_LEFT_CORNER;
+            LMARK[l] = LMARKOBS_TOP_LEFT_CORNER;
         } else if (j_vr(l) == obs_top_row && i_vr(l) == obs_right_col) {
-            LMARK[l] = LMARKOBS_RIGHT_CORNER;
-        */
+            LMARK[l] = LMARKOBS_TOP_RIGHT_CORNER;
+        } else if (j_vr(l) == 0 && i_vr(l) == obs_left_col) {
+            LMARK[l] = LMARKOBS_BOT_LEFT_CORNER;
+        } else if (j_vr(l) == 0 && i_vr(l) == obs_right_col) {
+            LMARK[l] = LMARKOBS_BOT_RIGHT_CORNER;
+        } else if (i_vr(l) == 0 || i_vr(l) == I - 1 || j_vr(l) == 0 || j_vr(l) == J - 1) {
+            LMARK[l] = LMARKBC;
         } else {
             LMARK[l] = LMARKBULK;
         }
@@ -110,7 +111,7 @@ int main(int argc, char** args){
         //Velocity Field
         double angle = 0.01 * (double)rand() / (double)((unsigned)RAND_MAX + 1);  // randomly initialize velocity field
         U[0][l] = DENSITYINIT;
-        U[1][l] = INLET_VELOCITY; // 0.0; //0.001 * cos(angle);
+        U[1][l] = INLET_VELOCITY; //0.001 * cos(angle);
         U[2][l] = 0.0; //0.001 * sin(angle);
         
         //Q tensor

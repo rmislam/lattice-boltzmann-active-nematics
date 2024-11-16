@@ -8,8 +8,7 @@ void compute_LB_step() {
         for (int m = 0; m < LATTICE_VELOCITY_NUMBER; m++) {
             int lnew = calcLBlnew(l, m);   //Streaming location
             if (lnew >= NMAX || lnew < 0) continue;
-            //FNEW[m][lnew] = F[m][l] + DT * ((FEQ[m][l] - F[m][l]) / TAUF + P[m][l]);
-            FNEW[m][lnew] = F[m][l] + DT * ((FEQ[m][l] - F[m][l]) / TAUF);
+            FNEW[m][lnew] = F[m][l] + DT * ((FEQ[m][l] - F[m][l]) / TAUF + P[m][l]);
         }
     }
     
@@ -67,21 +66,22 @@ int calcLBlnew(int l, int m) {
 void enforceBoundaryConditions() {
     #pragma omp parallel for num_threads(STPROC) schedule(dynamic)
     for (int l = 0; l < NMAX; l++) {
-        if (j_vr(l) == 0) { // && !(LMARK[l] == LMARKOBSBULK || LMARK[l] == LMARKOBSLEFT || LMARK[l] == LMARKOBSRIGHT)) || LMARK[l] == LMARKOBSTOP) {  // bottom edge -- no-slip, and top of obstacle
+        if (j_vr(l) == 0 && !(LMARK[l] == LMARKOBSBULK || LMARK[l] == LMARKOBS_BOT_LEFT_CORNER || LMARK[l] == LMARKOBS_BOT_RIGHT_CORNER)) {  // bottom edge of channel -- no-slip
             FNEW[2][l] = F[4][l];
             FNEW[5][l] = F[7][l];
             FNEW[6][l] = F[8][l];
-        /*
-        } else if (j_vr(l) == 0 && (LMARK[l] == LMARKOBSBULK || LMARK[l] == LMARKOBSLEFT || LMARK[l] == LMARKOBSRIGHT)) {
+        } else if (j_vr(l) == 0 && LMARK[l] == LMARKOBSBULK) {
             FNEW[4][l] = F[2][l];
             FNEW[7][l] = F[5][l];
             FNEW[8][l] = F[6][l];
-        */
-        } else if (j_vr(l) == J - 1) {  // top edge -- no-slip
+        } else if (LMARK[l] == LMARKOBSTOP) {  // top of obstacle -- no-slip
+            FNEW[2][l] = F[4][l];
+            FNEW[5][l] = F[7][l];
+            FNEW[6][l] = F[8][l];
+        } else if (j_vr(l) == J - 1) {  // top edge of channel -- no-slip
             FNEW[4][l] = F[2][l];
             FNEW[7][l] = F[5][l];
             FNEW[8][l] = F[6][l];
-        /*
         } else if (LMARK[l] == LMARKOBSLEFT) {
             FNEW[6][l] = F[8][l];
             FNEW[3][l] = F[1][l];
@@ -90,15 +90,18 @@ void enforceBoundaryConditions() {
             FNEW[5][l] = F[7][l];
             FNEW[1][l] = F[3][l];
             FNEW[8][l] = F[6][l];
-        } else if (LMARK[l] == LMARKOBS_LEFT_CORNER) {
+        } else if (LMARK[l] == LMARKOBS_TOP_LEFT_CORNER) {
             FNEW[6][l] = F[8][l];
             FNEW[2][l] = F[4][l];
             FNEW[3][l] = F[1][l];
-        } else if (LMARK[l] == LMARKOBS_RIGHT_CORNER) {
+        } else if (LMARK[l] == LMARKOBS_TOP_RIGHT_CORNER) {
             FNEW[5][l] = F[7][l];
             FNEW[2][l] = F[4][l];
             FNEW[1][l] = F[3][l];
-        */
+        } else if (LMARK[l] == LMARKOBS_BOT_LEFT_CORNER) {
+            FNEW[6][l] = F[8][l];
+        } else if (LMARK[l] == LMARKOBS_BOT_RIGHT_CORNER) {
+            FNEW[5][l] = F[7][l];
         } else if (i_vr(l) == 0 && j_vr(l) > 0 && j_vr(l) < J - 1) {  // left edge -- fixed velocity inlet
             FNEW[1][l] = F[3][l] + 2.0 * U[0][l] * INLET_VELOCITY / 3.0;
             FNEW[5][l] = F[7][l] - 0.5 * (F[2][l] - F[4][l]) + U[0][l] * INLET_VELOCITY / 6.0;
@@ -129,16 +132,11 @@ void calcF2U(int l) {
     if (j_vr(l) == 0 || j_vr(l) == J - 1) {  // top and bottom edges -- no-slip condition
         U[1][l] = 0;
         U[2][l] = 0;
-    /*
-    } else if (LMARK[l] == LMARKOBSBULK || LMARK[l] == LMARKOBSTOP || LMARK[l] == LMARKOBSLEFT || LMARK[l] == LMARKOBSRIGHT) {
-        U[1][l] = 0;  // velocity is zero everywhere in obstacle
-        U[2][l] = 0;
-    } else if (LMARK[l] == LMARKOBS_LEFT_CORNER || LMARK[l] == LMARKOBS_RIGHT_CORNER) {
-        U[1][l] = 0;  // velocity is zero everywhere in obstacle
-        U[2][l] = 0;
-    */
     } else if (i_vr(l) == 0 && j_vr(l) > 0 && j_vr(l) < J - 1) {  // left edge -- constant velocity (inlet) // NOTE: maybe ok to delete?
         U[1][l] = INLET_VELOCITY;
+        U[2][l] = 0;
+    } else if (LMARK[l] == LMARKOBSBULK || LMARK[l] == LMARKOBSLEFT || LMARK[l] == LMARKOBSRIGHT || LMARK[l] == LMARKOBSTOP || LMARK[l] == LMARKOBS_TOP_LEFT_CORNER || LMARK[l] == LMARKOBS_TOP_RIGHT_CORNER || LMARK[l] == LMARKOBS_BOT_LEFT_CORNER || LMARK[l] == LMARKOBS_BOT_RIGHT_CORNER) {
+        U[1][l] = 0;
         U[2][l] = 0;
     //} else if (i_vr(l) == I - 1 && j_vr(l) > 0 && j_vr(l) < J - 1) {  // right edge -- open (absorbing) boundary //  NOTE: This ruins everything!
     //    U[0][l] = U[0][l - 1];
@@ -155,8 +153,6 @@ void calcF2U(int l) {
 
         double forceX = (SIGMA[0][l + 1] - SIGMA[0][l - 1]) / 2.0 + (SIGMA[1][l + I] - SIGMA[1][l - I]) / 2.0 - MU * U[1][l];
         double forceY = (SIGMA[2][l + 1] - SIGMA[2][l - 1]) / 2.0 + (SIGMA[3][l + I] - SIGMA[3][l - I]) / 2.0 - MU * U[2][l];
-        forceX = 0;  // TURNING OFF FORCE
-        forceY = 0;
 
         U[1][l] = fex / density + forceX * DT / 2.0 / density;
         U[2][l] = fey / density + forceY * DT / 2.0 / density;
