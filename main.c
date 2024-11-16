@@ -63,8 +63,7 @@ int main(int argc, char** args){
     WKONST = (double*)malloc(LATTICE_VELOCITY_NUMBER * sizeof(double));  //Lattice Boltzmann weights
     LMARK = malloc(NMAX * sizeof(char));        //Logical markers to determine a mesh point function (bulk or boundary condition)
     ACTIVITY = malloc(NMAX * sizeof(double));  // activity vs. no activity
-    
-    
+
     //Initialization
     unsigned seed = 12345;
     srand(seed);
@@ -77,14 +76,15 @@ int main(int argc, char** args){
     double phi0 = 0.5 * M_PI;   // 0.5 * M_PI;
     double topo_charge = 0.5;
 
-    int obs_top_row = round(0.25 * J - 0.5);
-    int obs_left_col = round(0.20 * I - 0.5);
-    int obs_right_col = round(0.40 * I - 0.5);
+    //int obs_top_row = round(0.25 * J - 0.5);
+    //int obs_left_col = round(0.20 * I - 0.5);
+    //int obs_right_col = round(0.40 * I - 0.5);
 
     for (int l = 0; l < NMAX; l++) {
         //Logical markers
         if (i_vr(l) == 0 || i_vr(l) == I - 1 || j_vr(l) == 0 || j_vr(l) == J - 1) {
             LMARK[l] = LMARKBC;
+        /*
         } else if (j_vr(l) < obs_top_row) {
             if (i_vr(l) == obs_left_col) {
                 LMARK[l] = LMARKOBSLEFT;
@@ -99,6 +99,7 @@ int main(int argc, char** args){
             LMARK[l] = LMARKOBS_LEFT_CORNER;
         } else if (j_vr(l) == obs_top_row && i_vr(l) == obs_right_col) {
             LMARK[l] = LMARKOBS_RIGHT_CORNER;
+        */
         } else {
             LMARK[l] = LMARKBULK;
         }
@@ -109,7 +110,7 @@ int main(int argc, char** args){
         //Velocity Field
         double angle = 0.01 * (double)rand() / (double)((unsigned)RAND_MAX + 1);  // randomly initialize velocity field
         U[0][l] = DENSITYINIT;
-        U[1][l] = 0.0; //0.001 * cos(angle);
+        U[1][l] = INLET_VELOCITY; // 0.0; //0.001 * cos(angle);
         U[2][l] = 0.0; //0.001 * sin(angle);
         
         //Q tensor

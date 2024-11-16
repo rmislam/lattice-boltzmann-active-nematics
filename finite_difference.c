@@ -23,10 +23,11 @@ void compute_FD_step() {
         double angle = 0.5 * M_PI; // vertical (homeotropic) anchoring at top and bottom boundaries  //0.25 * M_PI;
 
         // NOTE: maybe I can set this once at the beginning, and never set it again
-        if (j_vr(l) == 0 || j_vr(l) == J - 1 || LMARK[l] == LMARKOBSTOP) {
+        if (j_vr(l) == 0 || j_vr(l) == J - 1) { // || LMARK[l] == LMARKOBSTOP) {
             // infinite homeotropic anchoring at top and bottom of domain, and top of obstacle
             QNEW[0][l] = degree_of_order / 2.0 * cos(2 * angle);   //Qxx component
             QNEW[1][l] = degree_of_order / 2.0 * sin(2 * angle);   //Qxy component
+        /*
         } else if (LMARK[l] == LMARKOBSLEFT || LMARK[l] == LMARKOBSRIGHT) {
             angle = 0; // horizontal (homeotropic) anchoring on left and right sides of obstacle
             QNEW[0][l] = degree_of_order / 2.0 * cos(2 * angle);   //Qxx component
@@ -39,6 +40,7 @@ void compute_FD_step() {
             angle = 0.25 * M_PI;
             QNEW[0][l] = degree_of_order / 2.0 * cos(2 * angle);   //Qxx component
             QNEW[1][l] = degree_of_order / 2.0 * sin(2 * angle);   //Qxy component
+        */
         }
         // ignore Q inside obstacle bulk
     }
