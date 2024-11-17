@@ -104,10 +104,18 @@ void calcF2U(int l) {
     } else if (i_vr(l) == 0 && j_vr(l) > 0 && j_vr(l) < J - 1) {  // left edge -- constant velocity (inlet)
         U[1][l] = INLET_VELOCITY;
         U[2][l] = 0;
-    //} else if (i_vr(l) == I - 1 && j_vr(l) > 0 && j_vr(l) < J - 1) {  // right edge -- open (absorbing) boundary //  NOTE: This ruins everything!
-    //    U[0][l] = U[0][l - 1];
-    //    U[1][l] = U[1][l - 1];
-    //    U[2][l] = U[2][l - 1];
+    } else if (i_vr(l) == I - 1 && j_vr(l) > 0 && j_vr(l) < J - 1) {  // right edge -- open (absorbing) boundary
+        double fex = 0.0, fey = 0.0, density = 0.0;
+
+        for (int m = 0; m < LATTICE_VELOCITY_NUMBER; m++) {
+            density += F[m][l];
+            fex += F[m][l] * E[m][0];
+            fey += F[m][l] * E[m][1];
+        }
+
+        U[1][l] = fex / density;
+        U[2][l] = fey / density;
+        U[0][l] = density;
     } else if (LMARK[l] == LMARKBULK) {
         double fex = 0.0, fey = 0.0, density = 0.0;
 

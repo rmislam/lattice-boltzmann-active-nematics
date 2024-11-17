@@ -10,7 +10,6 @@ void computeFeq();
 void compute_LB_step();
 void computeP();
 void computeBounceBack();
-//int calcLobc(int l);
 int calcLBlnew(int l, int m);
 void calcFNEW2F();
 void calcF2U(int l);

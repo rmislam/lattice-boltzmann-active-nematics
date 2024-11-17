@@ -36,7 +36,7 @@ int STPROC = 2;
 // 0.35 // 0.01 //0.1 // 1.  // -0.01
 
 //Time step
-#define DT 0.04 // 0.002 // 0.0001   // try 0.01 or 0.005
+#define DT 0.05 // 0.002 // 0.0001   // try 0.01 or 0.005
 
 //relaxation time of the Lb scheme
 #define TAUF (0.55 * DT) // corresponds to viscosity of 1/3, taking into account GAMMA // (1.0 * DT)  // must be greater than 0.5 * DT
@@ -45,7 +45,7 @@ int STPROC = 2;
 #define	DENSITYINIT (2.0 / DT)
 
 //Inlet velocity from left edge
-#define INLET_VELOCITY 0.02
+#define INLET_VELOCITY 0.01
 
 //Molecular field coefficient
 #define GAMMA 0.1
