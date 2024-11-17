@@ -8,8 +8,7 @@ void compute_LB_step() {
         for (int m = 0; m < LATTICE_VELOCITY_NUMBER; m++) {
             int lnew = calcLBlnew(l, m);   //Streaming location
             if (lnew >= NMAX || lnew < 0) continue;
-            //FNEW[m][lnew] = F[m][l] - DT / TAUF * (F[m][l] - FEQ[m][l]) + P[m][l];    //Streaming and collision // boundaries are ignored (see calcFNEW2F)
-            FNEW[m][lnew] = F[m][l] + DT * ((FEQ[m][l] - F[m][l]) / TAUF + P[m][l]); 
+            FNEW[m][lnew] = F[m][l] + DT * ((FEQ[m][l] - F[m][l]) / TAUF + P[m][l]);
         }
     }
     
@@ -19,17 +18,6 @@ void compute_LB_step() {
     //Compute the velocity field
     #pragma omp parallel for num_threads(STPROC) schedule(dynamic)
     for (int l = 0; l < NMAX; l++) calcF2U(l);
-
-    /*
-    // Enforce open boundary condition for velocity on right edge
-    #pragma omp parallel for num_threads(STPROC) schedule(dynamic)
-    for (int l = 0; l < NMAX; l++) {
-        if (i_vr(l) == I - 1 && j_vr(l) > 0 && j_vr(l) < J - 1) {
-            U[1][l] = U[1][l - 1];
-            U[2][l] = U[2][l - 1];
-        }
-    }
-    */
 }
 
  //Computes equilibrium distribution function
@@ -66,21 +54,6 @@ void computeP() {
     }
 }
 
-/*
-//Compute the index of the open boundary
-int calcLobc(int l) {
-    int xp2 = 0, yp2 = 0, zp2 = 0;
-
-    // open boundaries on left and right, closed (bounce-back) boundaries on top and bottom
-    if (i_vr(l) == 0)      xp2 = 1;
-    if (i_vr(l) == I - 1)  xp2 = -1;
-    if (j_vr(l) == 0)      yp2 = I;
-    if (j_vr(l) == J - 1)  yp2 = -I;
-
-    return (l + xp2 + yp2 + zp2);
-}
-*/
-
 //Computes streaming location
 int calcLBlnew(int l, int m) {
     int i, j;
@@ -93,36 +66,22 @@ int calcLBlnew(int l, int m) {
 void enforceBoundaryConditions() {
     #pragma omp parallel for num_threads(STPROC) schedule(dynamic)
     for (int l = 0; l < NMAX; l++) {
-        if (j_vr(l) == 0) {  // top edge -- no-slip
+        if (j_vr(l) == J - 1) {  // top edge -- no-slip
             FNEW[4][l] = F[2][l];
             FNEW[7][l] = F[5][l];
             FNEW[8][l] = F[6][l];
-        } else if (j_vr(l) == J - 1) {  // bottom edge -- no-slip
+        } else if (j_vr(l) == 0) {  // bottom edge -- no-slip
             FNEW[2][l] = F[4][l];
             FNEW[5][l] = F[7][l];
             FNEW[6][l] = F[8][l];
-        } else if (i_vr(l) == 0 && j_vr(l) > 0 && j_vr(l) < J - 1) {  // left edge -- open (absorbing) boundary
+        } else if (i_vr(l) == 0 && j_vr(l) > 0 && j_vr(l) < J - 1) {  // left edge -- fixed velocity inlet
             FNEW[1][l] = F[3][l] + 2.0 * U[0][l] * INLET_VELOCITY / 3.0;
             FNEW[5][l] = F[7][l] - 0.5 * (F[2][l] - F[4][l]) + U[0][l] * INLET_VELOCITY / 6.0;
             FNEW[8][l] = F[6][l] + 0.5 * (F[2][l] - F[4][l]) + U[0][l] * INLET_VELOCITY / 6.0;
-            //FNEW[1][l] = F[1][l + 1];  // OBC
-            //FNEW[5][l] = F[5][l + 1];
-            //FNEW[8][l] = F[8][l + 1];
-            //for (int m = 0; m < LATTICE_VELOCITY_NUMBER; m++) {
-            //    FNEW[m][l] = F[m][l + 1];
-            //}
-            //FNEW[1][l] = F[1][l + I - 2];  // PBC
         } else if (i_vr(l) == I - 1 && j_vr(l) > 0 && j_vr(l) < J - 1) {  // right edge -- open (absorbing) boundary
-            //FNEW[3][l] = F[1][l] - 2.0 * U[0][l] * INLET_VELOCITY / 3.0;
-            //FNEW[7][l] = F[5][l] + 0.5 * (F[2][l] - F[4][l]) - U[0][l] * INLET_VELOCITY / 6.0;
-            //FNEW[6][l] = F[8][l] - 0.5 * (F[2][l] - F[4][l]) - U[0][l] * INLET_VELOCITY / 6.0;
-            //FNEW[3][l] = F[3][l - 1];  //OBC // Mohamad 8.52
-            //FNEW[6][l] = F[6][l - 1];
-            //FNEW[7][l] = F[7][l - 1];
-            for (int m = 0; m < LATTICE_VELOCITY_NUMBER; m++) {
-                FNEW[m][l] = F[m][l - 1];
-            }
-            //FNEW[1][l] = F[1][l - (I - 2)];  // PBC
+            FNEW[3][l] = F[3][l - 1];
+            FNEW[6][l] = F[6][l - 1];
+            FNEW[7][l] = F[7][l - 1];
         }
     }
 }
@@ -145,16 +104,10 @@ void calcF2U(int l) {
     } else if (i_vr(l) == 0 && j_vr(l) > 0 && j_vr(l) < J - 1) {  // left edge -- constant velocity (inlet)
         U[1][l] = INLET_VELOCITY;
         U[2][l] = 0;
-    /*
-    } else if (i_vr(l) == 0 && j_vr(l) > 0 && j_vr(l) < J - 1) {  // left edge -- open (absorbing) boundary / zero gradient BC
-        U[0][l] = U[0][l + 1];
-        U[1][l] = U[1][l + 1];
-        U[2][l] = U[2][l + 1];
-    */
-    } else if (i_vr(l) == I - 1 && j_vr(l) > 0 && j_vr(l) < J - 1) {  // right edge -- open (absorbing) boundary
-        U[0][l] = U[0][l - 1];
-        U[1][l] = U[1][l - 1];
-        U[2][l] = U[2][l - 1];
+    //} else if (i_vr(l) == I - 1 && j_vr(l) > 0 && j_vr(l) < J - 1) {  // right edge -- open (absorbing) boundary //  NOTE: This ruins everything!
+    //    U[0][l] = U[0][l - 1];
+    //    U[1][l] = U[1][l - 1];
+    //    U[2][l] = U[2][l - 1];
     } else if (LMARK[l] == LMARKBULK) {
         double fex = 0.0, fey = 0.0, density = 0.0;
 
@@ -167,7 +120,7 @@ void calcF2U(int l) {
         double forceX = (SIGMA[0][l + 1] - SIGMA[0][l - 1]) / 2.0 + (SIGMA[1][l + I] - SIGMA[1][l - I]) / 2.0 - MU * U[1][l];
         double forceY = (SIGMA[2][l + 1] - SIGMA[2][l - 1]) / 2.0 + (SIGMA[3][l + I] - SIGMA[3][l - I]) / 2.0 - MU * U[2][l];
 
-        U[1][l] = fex / density + forceX * DT / 2.0 / density;  // NOTE: delete?
+        U[1][l] = fex / density + forceX * DT / 2.0 / density;
         U[2][l] = fey / density + forceY * DT / 2.0 / density;
         U[0][l] = density;
     }

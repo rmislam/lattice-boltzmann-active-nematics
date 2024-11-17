@@ -63,8 +63,7 @@ int main(int argc, char** args){
     WKONST = (double*)malloc(LATTICE_VELOCITY_NUMBER * sizeof(double));  //Lattice Boltzmann weights
     LMARK = malloc(NMAX * sizeof(char));        //Logical markers to determine a mesh point function (bulk or boundary condition)
     ACTIVITY = malloc(NMAX * sizeof(double));  // activity vs. no activity
-    
-    
+
     //Initialization
     unsigned seed = 12345;
     srand(seed);
@@ -88,7 +87,7 @@ int main(int argc, char** args){
         //Velocity Field
         double angle = 0.01 * (double)rand() / (double)((unsigned)RAND_MAX + 1);  // randomly initialize velocity field
         U[0][l] = DENSITYINIT;
-        U[1][l] = 0.0; //0.001 * cos(angle);
+        U[1][l] = INLET_VELOCITY; //0.0; //0.001 * cos(angle);
         U[2][l] = 0.0; //0.001 * sin(angle);
         
         //Q tensor
