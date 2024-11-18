@@ -40,7 +40,7 @@ void computeP() {
     
     #pragma omp parallel for num_threads(STPROC) schedule(dynamic)
     for (int l = 0; l < NMAX; l++) {
-        if (!(LMARK[l] == LMARKBULK)) continue;
+        if (!(LMARK[l] == LMARK_BULK)) continue;
         //Compute the derivatives of the stress tensor and the force
         double forceX = (SIGMA[0][l + 1] - SIGMA[0][l - 1]) / 2.0 + (SIGMA[1][l + I] - SIGMA[1][l - I]) / 2.0 - MU * U[1][l];
         double forceY = (SIGMA[2][l + 1] - SIGMA[2][l - 1]) / 2.0 + (SIGMA[3][l + I] - SIGMA[3][l - I]) / 2.0 - MU * U[2][l];
@@ -66,22 +66,42 @@ int calcLBlnew(int l, int m) {
 void enforceBoundaryConditions() {
     #pragma omp parallel for num_threads(STPROC) schedule(dynamic)
     for (int l = 0; l < NMAX; l++) {
-        if (j_vr(l) == J - 1) {  // top edge -- no-slip
+        if (LMARK[l] == LMARK_IN_TOP_WALL) {  // top edge -- no-slip
             FNEW[4][l] = F[2][l];
             FNEW[7][l] = F[5][l];
             FNEW[8][l] = F[6][l];
-        } else if (j_vr(l) == 0) {  // bottom edge -- no-slip
+        } else if (LMARK[l] == LMARK_IN_BOT_WALL) {  // bottom edge -- no-slip
             FNEW[2][l] = F[4][l];
             FNEW[5][l] = F[7][l];
             FNEW[6][l] = F[8][l];
-        } else if (i_vr(l) == 0 && j_vr(l) > 0 && j_vr(l) < J - 1) {  // left edge -- fixed velocity inlet
+        } else if (LMARK[l] == LMARK_RIGHT_WALL) {  // right wall -- no-slip
+            FNEW[3][l] = F[1][l];
+            FNEW[6][l] = F[8][l];
+            FNEW[7][l] = F[5][l];
+        } else if (LMARK[l] == LMARK_UP_LEFT_WALL || LMARK[l] == LMARK_DOWN_LEFT_WALL) {  // left walls -- no-slip
+            FNEW[1][l] = F[3][l];
+            FNEW[5][l] = F[7][l];
+            FNEW[8][l] = F[6][l];
+        } else if (LMARK[l] == LMARK_UP_CORNER) {  // up corner -- no-slip
+            FNEW[1][l] = F[3][l];
+            FNEW[4][l] = F[2][l];
+            FNEW[8][l] = F[6][l];
+        } else if (LMARK[l] == LMARK_DOWN_CORNER) {  // down corner -- no-slip
+            FNEW[1][l] = F[3][l];
+            FNEW[2][l] = F[4][l];
+            FNEW[5][l] = F[7][l];
+        } else if (LMARK[l] == LMARK_INLET) {  // left edge -- fixed velocity inlet
             FNEW[1][l] = F[3][l] + 2.0 * U[0][l] * INLET_VELOCITY / 3.0;
             FNEW[5][l] = F[7][l] - 0.5 * (F[2][l] - F[4][l]) + U[0][l] * INLET_VELOCITY / 6.0;
             FNEW[8][l] = F[6][l] + 0.5 * (F[2][l] - F[4][l]) + U[0][l] * INLET_VELOCITY / 6.0;
-        } else if (i_vr(l) == I - 1 && j_vr(l) > 0 && j_vr(l) < J - 1) {  // right edge -- open (absorbing) boundary
-            FNEW[3][l] = F[3][l - 1];
-            FNEW[6][l] = F[6][l - 1];
-            FNEW[7][l] = F[7][l - 1];
+        } else if (LMARK[l] == LMARK_UP_OUTLET) {  // up outlet
+            FNEW[4][l] = F[4][l - I];
+            FNEW[7][l] = F[7][l - I];
+            FNEW[8][l] = F[8][l - I];
+        } else if (LMARK[l] == LMARK_DOWN_OUTLET) {  // down outlet
+            FNEW[2][l] = F[2][l + I];
+            FNEW[5][l] = F[5][l + I];
+            FNEW[6][l] = F[6][l + I];
         }
     }
 }
@@ -98,13 +118,16 @@ void calcFNEW2F() {
 
 //Computes velocity field from F
 void calcF2U(int l) {
-    if (j_vr(l) == 0 || j_vr(l) == J - 1) {  // top and bottom edges -- no-slip condition
+    if (LMARK[l] == LMARK_IN_TOP_WALL || LMARK[l] == LMARK_IN_BOT_WALL || LMARK[l] == LMARK_UP_LEFT_WALL || LMARK[l] == LMARK_DOWN_LEFT_WALL || LMARK[l] == LMARK_RIGHT_WALL || LMARK[l] == LMARK_UP_CORNER || LMARK[l] == LMARK_DOWN_CORNER) {  // no-slip condition along channel walls
         U[1][l] = 0;
         U[2][l] = 0;
-    } else if (i_vr(l) == 0 && j_vr(l) > 0 && j_vr(l) < J - 1) {  // left edge -- constant velocity (inlet)
+    } else if (LMARK[l] == LMARK_OBS_BULK) {  // nothing moving inside obstacle
+        U[1][l] = 0;
+        U[2][l] = 0;
+    } else if (LMARK[l] == LMARK_INLET) {  // left edge -- constant velocity (inlet)
         U[1][l] = INLET_VELOCITY;
         U[2][l] = 0;
-    } else if (i_vr(l) == I - 1 && j_vr(l) > 0 && j_vr(l) < J - 1) {  // right edge -- open (absorbing) boundary
+    } else if (LMARK[l] == LMARK_UP_OUTLET || LMARK[l] == LMARK_DOWN_OUTLET) {  // right edge -- open (absorbing) boundary
         double fex = 0.0, fey = 0.0, density = 0.0;
 
         for (int m = 0; m < LATTICE_VELOCITY_NUMBER; m++) {
@@ -116,7 +139,7 @@ void calcF2U(int l) {
         U[1][l] = fex / density;
         U[2][l] = fey / density;
         U[0][l] = density;
-    } else if (LMARK[l] == LMARKBULK) {
+    } else if (LMARK[l] == LMARK_BULK) {
         double fex = 0.0, fey = 0.0, density = 0.0;
 
         for (int m = 0; m < LATTICE_VELOCITY_NUMBER; m++) {
@@ -138,7 +161,7 @@ void calcF2U(int l) {
 void compute_sigma() {
     #pragma omp parallel for num_threads(STPROC) schedule(dynamic)
     for (int l = 0; l < NMAX; l++) {
-        if (!(LMARK[l] == LMARKBULK)) continue;
+        if (!(LMARK[l] == LMARK_BULK)) continue;
         // NOTE: positive activity is extensile, negative activity is contractile
         // NOTE: Qxx = Q[0], Qyy = -Q[0], Qxy = Qyx = Q[1], and Hxx = H[0], Hyy = -H[0], Hxy = Hyx = H[1]
         double dxQ0 = (Q[0][l + 1] - Q[0][l - 1]) / 2.0;

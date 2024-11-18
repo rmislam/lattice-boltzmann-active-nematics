@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import matplotlib.animation as animation
 
-TIME_STEPS = 50000
+TIME_STEPS = 20000
 TIME_WRITE = 100
 NUM_FILES = int(TIME_STEPS / TIME_WRITE)
 DEFECT_ORDER_THRESHOLD = 0.1  # lower is stricter

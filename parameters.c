@@ -12,7 +12,7 @@ char FILE_NAME[80] = "output/active_nematic";
 #define NMAX (I*J)
 
 //Total number of time steps in the simulation
-#define TIME_STEPS 50000
+#define TIME_STEPS 20000
 //On how many steps the fields are written to a file
 #define TIME_WRITE 100
 
@@ -60,8 +60,18 @@ int STPROC = 2;
 #define ALPHA 0.22 // 1. //5.  // try 0.2 or 0.3 // 0.4 is working
 
 //Logical markers for bulk and boundary points
-#define LMARKBULK 2    //bulk
-#define LMARKBC 4      //boundary condition
+#define LMARK_BULK 2          // channel bulk
+#define LMARK_OBS_BULK 4      // obstacle bulk
+#define LMARK_IN_TOP_WALL 6
+#define LMARK_IN_BOT_WALL 8
+#define LMARK_RIGHT_WALL 10
+#define LMARK_UP_LEFT_WALL 12
+#define LMARK_DOWN_LEFT_WALL 14
+#define LMARK_UP_CORNER 16
+#define LMARK_DOWN_CORNER 18
+#define LMARK_INLET 20
+#define LMARK_UP_OUTLET 22
+#define LMARK_DOWN_OUTLET 24
 
 //Activity pattern width and height fractions
 #define AWIDTHFRAC 0.9

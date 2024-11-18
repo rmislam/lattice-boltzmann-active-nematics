@@ -2,7 +2,7 @@
 void compute_FD_step() {
     #pragma omp parallel for num_threads(STPROC) schedule(dynamic)
     for (int l = 0; l < NMAX; l++) {
-        if (LMARK[l] == LMARKBULK) {
+        if (LMARK[l] == LMARK_BULK) {
             double u1[2], u2[2], u3[2];
             //Elastic part
             double Q_laplacian[2];
@@ -23,8 +23,21 @@ void compute_FD_step() {
         double angle = 0.5 * M_PI; // vertical (homeotropic) anchoring at top and bottom boundaries  //0.25 * M_PI;
 
         // NOTE: maybe I can set this once at the beginning, and never set it again
-        if (j_vr(l) == 0 || j_vr(l) == J - 1) {
-            // infinite homeotropic anchoring at top and bottom
+        // infinite homeotropic anchoring on channel walls
+        if (LMARK[l] == LMARK_IN_TOP_WALL || LMARK[l] == LMARK_IN_BOT_WALL) {
+            angle = 0.5 * M_PI;
+            QNEW[0][l] = degree_of_order / 2.0 * cos(2 * angle);   //Qxx component
+            QNEW[1][l] = degree_of_order / 2.0 * sin(2 * angle);   //Qxy component
+        } else if (LMARK[l] == LMARK_UP_LEFT_WALL || LMARK[l] == LMARK_DOWN_LEFT_WALL || LMARK[l] == LMARK_RIGHT_WALL) {
+            angle = 0;
+            QNEW[0][l] = degree_of_order / 2.0 * cos(2 * angle);   //Qxx component
+            QNEW[1][l] = degree_of_order / 2.0 * sin(2 * angle);   //Qxy component
+        } else if (LMARK[l] == LMARK_UP_CORNER) {
+            angle = 0.75 * M_PI;
+            QNEW[0][l] = degree_of_order / 2.0 * cos(2 * angle);   //Qxx component
+            QNEW[1][l] = degree_of_order / 2.0 * sin(2 * angle);   //Qxy component
+        } else if (LMARK[l] == LMARK_DOWN_CORNER) {
+            angle = 0.25 * M_PI;
             QNEW[0][l] = degree_of_order / 2.0 * cos(2 * angle);   //Qxx component
             QNEW[1][l] = degree_of_order / 2.0 * sin(2 * angle);   //Qxy component
         }
@@ -33,20 +46,21 @@ void compute_FD_step() {
     calcQNEW2Q();
 }
 
-//Write QNEW back to Q and implement the open boundaries on left and right edges
+//Write QNEW back to Q and implement open boundaries on inlet and outlets
 void calcQNEW2Q() {
     #pragma omp parallel for num_threads(STPROC) schedule(dynamic)
     for (int l = 0; l < NMAX; l++) {
-        if (i_vr(l) == 0) {
+        if (LMARK[l] == LMARK_INLET) {
             for(int m = 0; m < 2; m++) {
                 Q[m][l] = QNEW[m][l + 1];
-                //Q[m][l] = QNEW[m][l + I - 2];
             }
-        }
-        else if (i_vr(l) == I - 1) {
+        } else if (LMARK[l] == LMARK_UP_OUTLET) {
             for(int m = 0; m < 2; m++) {
-                Q[m][l] = QNEW[m][l - 1];
-                //Q[m][l] = QNEW[m][l - (I - 2)];
+                Q[m][l] = QNEW[m][l - I];
+            }
+        } else if (LMARK[l] == LMARK_DOWN_OUTLET) {
+            for(int m = 0; m < 2; m++) {
+                Q[m][l] = QNEW[m][l + I];
             }
         } else {
             for(int m = 0; m < 2; m++) {

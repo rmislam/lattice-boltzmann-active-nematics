@@ -76,10 +76,39 @@ int main(int argc, char** args){
     double phi0 = 0.5 * M_PI;   // 0.5 * M_PI;
     double topo_charge = 0.5;
 
+    // channel and obstacle structure
+    int in_bot_row = round(0.3 * J - 0.5);
+    int in_top_row = round(0.7 * J - 0.5);
+    int right_wall = I - 1;
+    int out_left_col = round(0.8 * I - 0.5);
+
     for (int l = 0; l < NMAX; l++) {
         //Logical markers
-        if (i_vr(l) == 0 || i_vr(l) == I - 1 || j_vr(l) == 0 || j_vr(l) == J - 1) LMARK[l] = LMARKBC;
-        else LMARK[l] = LMARKBULK;
+        if (i_vr(l) == 0 && j_vr(l) < in_top_row && j_vr(l) > in_bot_row) {
+            LMARK[l] = LMARK_INLET;
+        } else if (i_vr(l) > out_left_col && i_vr(l) < right_wall && j_vr(l) == J - 1) {
+            LMARK[l] = LMARK_UP_OUTLET;
+        } else if (i_vr(l) > out_left_col && i_vr(l) < right_wall && j_vr(l) == 0) {
+            LMARK[l] = LMARK_DOWN_OUTLET;
+        } else if (i_vr(l) < out_left_col && j_vr(l) == in_bot_row) {
+            LMARK[l] = LMARK_IN_BOT_WALL;
+        } else if (i_vr(l) < out_left_col && j_vr(l) == in_top_row) {
+            LMARK[l] = LMARK_IN_TOP_WALL;
+        } else if (i_vr(l) == right_wall) {
+            LMARK[l] = LMARK_RIGHT_WALL;
+        } else if (i_vr(l) == out_left_col && j_vr(l) > in_top_row) {
+            LMARK[l] = LMARK_UP_LEFT_WALL;
+        } else if (i_vr(l) == out_left_col && j_vr(l) < in_bot_row) {
+            LMARK[l] = LMARK_DOWN_LEFT_WALL;
+        } else if (i_vr(l) == out_left_col && j_vr(l) == in_top_row) {
+            LMARK[l] = LMARK_UP_CORNER;
+        } else if (i_vr(l) == out_left_col && j_vr(l) == in_bot_row) {
+            LMARK[l] = LMARK_DOWN_CORNER;
+        } else if (i_vr(l) < out_left_col && (j_vr(l) < in_bot_row || j_vr(l) > in_top_row)) {
+            LMARK[l] = LMARK_OBS_BULK;
+        } else {
+            LMARK[l] = LMARK_BULK;
+        }
 
         if (isPointInActivityPattern(l)) ACTIVITY[l] = ALPHA;
         else ACTIVITY[l] = 0.0;
