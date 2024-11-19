@@ -15,8 +15,8 @@ in_bot_frac = 0.45
 in_left_frac = 0.05
 in_right_frac = 0.95
 
-out_top_frac = 1
-out_bot_frac = 0.55
+out_top_frac = 0.45 #1
+out_bot_frac = 0 #0.55
 out_left_frac = 0.85
 out_right_frac = 0.95
 
