@@ -12,9 +12,15 @@ char FILE_NAME[80] = "output/active_nematic";
 #define NMAX (I*J)
 
 //Total number of time steps in the simulation
-#define TIME_STEPS 20000
+#define TIME_STEPS 200000
 //On how many steps the fields are written to a file
-#define TIME_WRITE 100
+#define TIME_WRITE 400
+
+// How many steps to wait before writing data files
+#define TIME_START_WRITE 100000
+
+// How long to wait for thermal equilibrium before applying defects and activity
+#define WARM_UP_STEPS 120000
 
 //Number of velocity vectors within the model -- in this case D2Q9 -- 9 velocities
 #define LATTICE_VELOCITY_NUMBER 9
@@ -45,7 +51,7 @@ int STPROC = 2;
 #define	DENSITYINIT (2.0 / DT)
 
 //Inlet velocity from left edge
-#define INLET_VELOCITY 0.01
+#define INLET_VELOCITY 0.001
 
 //Molecular field coefficient
 #define GAMMA 0.1

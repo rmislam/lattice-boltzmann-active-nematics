@@ -100,13 +100,13 @@ bool isPointInActivityPattern(int l) {
     int in_top_col = round(0.6 * J - 0.5);
     int in_bot_col = round(0.4 * J - 0.5);
     int in_left_col = round(0.05 * I - 0.5);
-    int in_right_col = round(0.95 * I - 0.5);
+    int in_right_col = round(0.97 * I - 0.5);
 
     // pattern along outlet channel
     int out_top_col = J;
     int out_bot_col = round(0.6 * J + 0.5);
-    int out_left_col = round(0.85 * I - 0.5);
-    int out_right_col = round(0.95 * I - 0.5);
+    int out_left_col = round(0.93 * I - 0.5);
+    int out_right_col = round(0.97 * I - 0.5);
 
     if (i >= in_left_col && i <= in_right_col && j >= in_bot_col && j <= in_top_col) {
         return true;
@@ -117,4 +117,26 @@ bool isPointInActivityPattern(int l) {
     }
 
     return false;
+}
+
+// NOTE:
+// Q = s * ([[ cos^2(theta) - 1/2,      cos(theta) * sin(theta) ],
+//           [ cos(theta) * sin(theta), sin^2(theta) - 1/2      ]])
+//   = (s/2) * ([[ cos(2 * theta),  sin(2 * theta)]],
+//               [ sin(2 * theta), -cos(2 * theta)]])      // using trig identities
+//
+// We only store two values for Q (Q11 and Q12) since Q22 = -Q11 and Q12 = Q21
+void createDefect(int center_x, int center_y, double phi0, double topo_charge, double degree_of_order) {
+    for (int l = 0; l < NMAX; l++) {
+        double dx_defect = (double)i_vr(l) - center_x;
+        double dy_defect = (double)j_vr(l) - center_y;
+        //angle = phi0 + topo_charge * atan2(dy_defect, dx_defect);
+        double angle = phi0;
+
+        if (dx_defect <= 0) {
+            angle += (1.0 - abs(dy_defect) / center_y) * topo_charge * atan2(dy_defect, dx_defect);  // TODO: generalize this to work with the defect not being at the y midpoint
+            Q[0][l] = degree_of_order / 2.0 * cos(2 * angle);  //Qxx component
+            Q[1][l] = degree_of_order / 2.0 * sin(2 * angle);  //Qxy component
+        }
+    }
 }
