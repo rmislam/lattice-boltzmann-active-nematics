@@ -10,15 +10,15 @@ TIME_WRITE = 400
 NUM_FILES = int((TIME_STEPS - TIME_START) / TIME_WRITE) + 1
 DEFECT_ORDER_THRESHOLD = 0.1  # lower is stricter
 
-in_top_frac = 0.6
-in_bot_frac = 0.4
+in_top_frac = 0.55
+in_bot_frac = 0.45
 in_left_frac = 0.05
-in_right_frac = 0.97
+in_right_frac = 0.95
 
 out_top_frac = 1
-out_bot_frac = 0.6
-out_left_frac = 0.93
-out_right_frac = 0.97
+out_bot_frac = 0.55
+out_left_frac = 0.85
+out_right_frac = 0.95
 
 fig1, ax1 = plt.subplots()
 fig1.subplots_adjust(left=0, bottom=0, right=1, top=1, wspace=None, hspace=None)

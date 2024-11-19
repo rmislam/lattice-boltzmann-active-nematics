@@ -70,10 +70,10 @@ int main(int argc, char** args){
     initialiseE(); //Initializes the lattice vectors
 
     // channel and obstacle structure
-    int in_bot_row = round(0.3 * J - 0.5);
-    int in_top_row = round(0.7 * J - 0.5);
+    int in_bot_row = round(0.4 * J - 0.5);
+    int in_top_row = round(0.6 * J - 0.5);
     int right_wall = I - 1;
-    int out_left_col = round(0.9 * I - 0.5);
+    int out_left_col = round(0.8 * I - 0.5);
 
     for (int l = 0; l < NMAX; l++) {
         //Logical markers
