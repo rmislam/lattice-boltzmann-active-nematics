@@ -96,50 +96,24 @@ bool isPointInActivityPattern(int l) {
     int i = i_vr(l);
     int j = j_vr(l);
 
-    // triangles are isosceles pointing right
-    // triangle 1 (leftmost)
-    int base_center_x = round(0.1 * I + 0.5);
-    int base_center_y = round(0.5 * J + 0.5);
-    int height = round(0.15 * I + 0.5);
-    int half_width = round(0.1 * J + 0.5);
+    // pattern along inlet channel
+    int in_top_col = round(0.6 * J - 0.5);
+    int in_bot_col = round(0.4 * J - 0.5);
+    int in_left_col = round(0.05 * I - 0.5);
+    int in_right_col = round(0.95 * I - 0.5);
 
-    // check if point is in triangle
-    if (i >= base_center_x && i <= base_center_x + height) {
-        if (abs(j - base_center_y) <= half_width * (1. - (i - base_center_x) / height)) {
-            return true;
-        }
+    // pattern along outlet channel
+    int out_top_col = J;
+    int out_bot_col = round(0.6 * J + 0.5);
+    int out_left_col = round(0.85 * I - 0.5);
+    int out_right_col = round(0.95 * I - 0.5);
+
+    if (i >= in_left_col && i <= in_right_col && j >= in_bot_col && j <= in_top_col) {
+        return true;
     }
 
-    base_center_x = round(0.27 * I + 0.5);
-
-    if (i >= base_center_x && i <= base_center_x + height) {
-        if (abs(j - base_center_y) <= half_width * (1. - (i - base_center_x) / height)) {
-            return true;
-        }
-    }
-
-    base_center_x = round(0.44 * I + 0.5);
-
-    if (i >= base_center_x && i <= base_center_x + height) {
-        if (abs(j - base_center_y) <= half_width * (1. - (i - base_center_x) / height)) {
-            return true;
-        }
-    }
-
-    base_center_x = round(0.61 * I + 0.5);
-
-    if (i >= base_center_x && i <= base_center_x + height) {
-        if (abs(j - base_center_y) <= half_width * (1. - (i - base_center_x) / height)) {
-            return true;
-        }
-    }
-
-    base_center_x = round(0.78 * I + 0.5);
-
-    if (i >= base_center_x && i <= base_center_x + height) {
-        if (abs(j - base_center_y) <= half_width * (1. - (i - base_center_x) / height)) {
-            return true;
-        }
+    if (i >= out_left_col && i <= out_right_col && j >= out_bot_col && j <= out_top_col) {
+        return true;
     }
 
     return false;
