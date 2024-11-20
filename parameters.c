@@ -12,15 +12,15 @@ char FILE_NAME[80] = "output/active_nematic";
 #define NMAX (I*J)
 
 //Total number of time steps in the simulation
-#define TIME_STEPS 200000
+#define TIME_STEPS 300000
 //On how many steps the fields are written to a file
-#define TIME_WRITE 400
+#define TIME_WRITE 1000
 
 // How many steps to wait before writing data files
-#define TIME_START_WRITE 100000
+#define TIME_START_WRITE 40000
 
 // How long to wait for thermal equilibrium before applying defects and activity
-#define WARM_UP_STEPS 120000
+#define WARM_UP_STEPS 40000
 
 //Number of velocity vectors within the model -- in this case D2Q9 -- 9 velocities
 #define LATTICE_VELOCITY_NUMBER 9
@@ -68,16 +68,21 @@ int STPROC = 2;
 //Logical markers for bulk and boundary points
 #define LMARK_BULK 2          // channel bulk
 #define LMARK_OBS_BULK 4      // obstacle bulk
-#define LMARK_IN_TOP_WALL 6
-#define LMARK_IN_BOT_WALL 8
-#define LMARK_RIGHT_WALL 10
-#define LMARK_UP_LEFT_WALL 12
-#define LMARK_DOWN_LEFT_WALL 14
-#define LMARK_UP_CORNER 16
-#define LMARK_DOWN_CORNER 18
-#define LMARK_INLET 20
-#define LMARK_UP_OUTLET 22
-#define LMARK_DOWN_OUTLET 24
+
+#define LMARK_BOT_WALL 6
+#define LMARK_TOP_WALL 8
+#define LMARK_LEFT_WALL 10
+#define LMARK_RIGHT_WALL 12
+
+#define LMARK_CORNER_BOT_LEFT 14
+#define LMARK_CORNER_BOT_RIGHT 16
+#define LMARK_CORNER_TOP_LEFT 18
+#define LMARK_CORNER_TOP_RIGHT 20
+
+#define LMARK_BOT_OUTLET 22
+#define LMARK_TOP_OUTLET 24
+#define LMARK_LEFT_OUTLET 26
+#define LMARK_RIGHT_OUTLET 28
 
 //Activity pattern width and height fractions
 #define AWIDTHFRAC 0.9

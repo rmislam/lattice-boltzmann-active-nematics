@@ -70,34 +70,41 @@ int main(int argc, char** args){
     initialiseE(); //Initializes the lattice vectors
 
     // channel and obstacle structure
-    int in_bot_row = round(0.4 * J - 0.5);
-    int in_top_row = round(0.6 * J - 0.5);
-    int right_wall = I - 1;
-    int out_left_col = round(0.8 * I - 0.5);
+    int bot_row = round(0.4 * J - 0.5);
+    int top_row = round(0.6 * J - 0.5);
+    int left_col = round(0.4 * I - 0.5);
+    int right_col = round(0.6 * I - 0.5);
 
     for (int l = 0; l < NMAX; l++) {
+        int i = i_vr(l);
+        int j = j_vr(l);
+
         //Logical markers
-        if (i_vr(l) == 0 && j_vr(l) < in_top_row && j_vr(l) > in_bot_row) {
-            LMARK[l] = LMARK_INLET;
-        } else if (i_vr(l) > out_left_col && i_vr(l) < right_wall && j_vr(l) == J - 1) {
-            LMARK[l] = LMARK_UP_OUTLET;
-        } else if (i_vr(l) > out_left_col && i_vr(l) < right_wall && j_vr(l) == 0) {
-            LMARK[l] = LMARK_DOWN_OUTLET;
-        } else if (i_vr(l) < out_left_col && j_vr(l) == in_bot_row) {
-            LMARK[l] = LMARK_IN_BOT_WALL;
-        } else if (i_vr(l) < out_left_col && j_vr(l) == in_top_row) {
-            LMARK[l] = LMARK_IN_TOP_WALL;
-        } else if (i_vr(l) == right_wall) {
+        if (i == 0 && j < top_row && j > bot_row) { // outlets
+            LMARK[l] = LMARK_LEFT_OUTLET;
+        } else if (i == I - 1 && j < top_row && j > bot_row) {
+            LMARK[l] = LMARK_RIGHT_OUTLET;
+        } else if (i > left_col && i < right_col && j == J - 1) {
+            LMARK[l] = LMARK_TOP_OUTLET;
+        } else if (i > left_col && i < right_col && j == 0) {
+            LMARK[l] = LMARK_BOT_OUTLET;
+        } else if (j == bot_row && (i < left_col || i > right_col)) { // walls
+            LMARK[l] = LMARK_BOT_WALL;
+        } else if (j == top_row && (i < left_col || i > right_col)) {
+            LMARK[l] = LMARK_TOP_WALL;
+        } else if (i == left_col && (j < bot_row || j > top_row)) {
+            LMARK[l] = LMARK_LEFT_WALL;
+        } else if (i == right_col && (j < bot_row || j > top_row)) {
             LMARK[l] = LMARK_RIGHT_WALL;
-        } else if (i_vr(l) == out_left_col && j_vr(l) > in_top_row) {
-            LMARK[l] = LMARK_UP_LEFT_WALL;
-        } else if (i_vr(l) == out_left_col && j_vr(l) < in_bot_row) {
-            LMARK[l] = LMARK_DOWN_LEFT_WALL;
-        } else if (i_vr(l) == out_left_col && j_vr(l) == in_top_row) {
-            LMARK[l] = LMARK_UP_CORNER;
-        } else if (i_vr(l) == out_left_col && j_vr(l) == in_bot_row) {
-            LMARK[l] = LMARK_DOWN_CORNER;
-        } else if (i_vr(l) < out_left_col && (j_vr(l) < in_bot_row || j_vr(l) > in_top_row)) {
+        } else if (i == left_col && j == bot_row) { // corners
+            LMARK[l] = LMARK_CORNER_BOT_LEFT;
+        } else if (i == right_col && j == bot_row) {
+            LMARK[l] = LMARK_CORNER_BOT_RIGHT;
+        } else if (i == left_col && j == top_row) {
+            LMARK[l] = LMARK_CORNER_TOP_LEFT;
+        } else if (i == right_col && j == top_row) {
+            LMARK[l] = LMARK_CORNER_TOP_RIGHT;
+        } else if ((i < left_col && j < bot_row) || (i > right_col && j < bot_row) || (i < left_col && j > top_row) || (i > right_col && j > top_row)) { // bulk
             LMARK[l] = LMARK_OBS_BULK;
         } else {
             LMARK[l] = LMARK_BULK;
@@ -112,12 +119,17 @@ int main(int argc, char** args){
         U[0][l] = DENSITYINIT;
         U[1][l] = INLET_VELOCITY; //0.0; //0.001 * cos(angle);
         U[2][l] = 0.0; //0.001 * sin(angle);
+
+        // Initialize director to point between quadrants II and IV
+        double angle = 0.75 * M_PI;
+        Q[0][l] = 1.0 / 2.0 * cos(2 * angle);  //Qxx component
+        Q[1][l] = 1.0 / 2.0 * sin(2 * angle);  //Qxy component
     }
 
     // defect location
-    double defect_x = round(0.1 * I + 0.5);
+    double defect_x = round(0.1 * I + 0.5); //round(0.5 * I - 0.5);
     //double defect_x = round(0.24 * I - 0.5);
-    double defect_y = round(0.5 * J - 0.5);
+    double defect_y = round(0.5 * J - 0.5); //round(0.1 * J + 0.5); 
     double phi0 = 0.5 * M_PI;   // 0.5 * M_PI;
     double topo_charge = 0.5;
     double degree_of_order = 1.;

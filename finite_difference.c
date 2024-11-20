@@ -24,19 +24,19 @@ void compute_FD_step() {
 
         // NOTE: maybe I can set this once at the beginning, and never set it again
         // infinite homeotropic anchoring on channel walls
-        if (LMARK[l] == LMARK_IN_TOP_WALL || LMARK[l] == LMARK_IN_BOT_WALL) {
+        if (LMARK[l] == LMARK_TOP_WALL || LMARK[l] == LMARK_BOT_WALL) { // walls
             angle = 0.5 * M_PI;
             QNEW[0][l] = degree_of_order / 2.0 * cos(2 * angle);   //Qxx component
             QNEW[1][l] = degree_of_order / 2.0 * sin(2 * angle);   //Qxy component
-        } else if (LMARK[l] == LMARK_UP_LEFT_WALL || LMARK[l] == LMARK_DOWN_LEFT_WALL || LMARK[l] == LMARK_RIGHT_WALL) {
+        } else if (LMARK[l] == LMARK_LEFT_WALL || LMARK[l] == LMARK_RIGHT_WALL) {
             angle = 0;
             QNEW[0][l] = degree_of_order / 2.0 * cos(2 * angle);   //Qxx component
             QNEW[1][l] = degree_of_order / 2.0 * sin(2 * angle);   //Qxy component
-        } else if (LMARK[l] == LMARK_UP_CORNER) {
+        } else if (LMARK[l] == LMARK_CORNER_TOP_LEFT || LMARK[l] == LMARK_CORNER_BOT_RIGHT) { // corners
             angle = 0.75 * M_PI;
             QNEW[0][l] = degree_of_order / 2.0 * cos(2 * angle);   //Qxx component
             QNEW[1][l] = degree_of_order / 2.0 * sin(2 * angle);   //Qxy component
-        } else if (LMARK[l] == LMARK_DOWN_CORNER) {
+        } else if (LMARK[l] == LMARK_CORNER_TOP_RIGHT || LMARK[l] == LMARK_CORNER_BOT_LEFT) {
             angle = 0.25 * M_PI;
             QNEW[0][l] = degree_of_order / 2.0 * cos(2 * angle);   //Qxx component
             QNEW[1][l] = degree_of_order / 2.0 * sin(2 * angle);   //Qxy component
@@ -46,21 +46,25 @@ void compute_FD_step() {
     calcQNEW2Q();
 }
 
-//Write QNEW back to Q and implement open boundaries on inlet and outlets
+//Write QNEW back to Q and implement open boundaries on all four outlets
 void calcQNEW2Q() {
     #pragma omp parallel for num_threads(STPROC) schedule(dynamic)
     for (int l = 0; l < NMAX; l++) {
-        if (LMARK[l] == LMARK_INLET) {
+        if (LMARK[l] == LMARK_BOT_OUTLET) {
             for(int m = 0; m < 2; m++) {
-                Q[m][l] = QNEW[m][l + 1];
+                Q[m][l] = QNEW[m][l + I];
             }
-        } else if (LMARK[l] == LMARK_UP_OUTLET) {
+        } else if (LMARK[l] == LMARK_TOP_OUTLET) {
             for(int m = 0; m < 2; m++) {
                 Q[m][l] = QNEW[m][l - I];
             }
-        } else if (LMARK[l] == LMARK_DOWN_OUTLET) {
+        } else if (LMARK[l] == LMARK_LEFT_OUTLET) {
             for(int m = 0; m < 2; m++) {
-                Q[m][l] = QNEW[m][l + I];
+                Q[m][l] = QNEW[m][l + 1];
+            }
+        } else if (LMARK[l] == LMARK_RIGHT_OUTLET) {
+            for(int m = 0; m < 2; m++) {
+                Q[m][l] = QNEW[m][l - 1];
             }
         } else {
             for(int m = 0; m < 2; m++) {

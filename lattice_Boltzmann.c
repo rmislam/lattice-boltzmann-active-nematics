@@ -66,42 +66,57 @@ int calcLBlnew(int l, int m) {
 void enforceBoundaryConditions() {
     #pragma omp parallel for num_threads(STPROC) schedule(dynamic)
     for (int l = 0; l < NMAX; l++) {
-        if (LMARK[l] == LMARK_IN_TOP_WALL) {  // top edge -- no-slip
+        if (LMARK[l] == LMARK_TOP_WALL) {  // walls -- no-slip
             FNEW[4][l] = F[2][l];
             FNEW[7][l] = F[5][l];
             FNEW[8][l] = F[6][l];
-        } else if (LMARK[l] == LMARK_IN_BOT_WALL) {  // bottom edge -- no-slip
+        } else if (LMARK[l] == LMARK_BOT_WALL) {
             FNEW[2][l] = F[4][l];
             FNEW[5][l] = F[7][l];
             FNEW[6][l] = F[8][l];
-        } else if (LMARK[l] == LMARK_RIGHT_WALL) {  // right wall -- no-slip
+        } else if (LMARK[l] == LMARK_RIGHT_WALL) {
             FNEW[3][l] = F[1][l];
             FNEW[6][l] = F[8][l];
             FNEW[7][l] = F[5][l];
-        } else if (LMARK[l] == LMARK_UP_LEFT_WALL || LMARK[l] == LMARK_DOWN_LEFT_WALL) {  // left walls -- no-slip
+        } else if (LMARK[l] == LMARK_LEFT_WALL) {
             FNEW[1][l] = F[3][l];
-            FNEW[5][l] = F[7][l];
             FNEW[8][l] = F[6][l];
-        } else if (LMARK[l] == LMARK_UP_CORNER) {  // up corner -- no-slip
+            FNEW[5][l] = F[7][l];
+        } else if (LMARK[l] == LMARK_CORNER_TOP_LEFT) {  // corners -- no-slip
             FNEW[1][l] = F[3][l];
             FNEW[4][l] = F[2][l];
             FNEW[8][l] = F[6][l];
-        } else if (LMARK[l] == LMARK_DOWN_CORNER) {  // down corner -- no-slip
+        } else if (LMARK[l] == LMARK_CORNER_BOT_LEFT) {
             FNEW[1][l] = F[3][l];
             FNEW[2][l] = F[4][l];
             FNEW[5][l] = F[7][l];
-        } else if (LMARK[l] == LMARK_INLET) {  // left edge -- fixed velocity inlet
-            FNEW[1][l] = F[3][l] + 2.0 * U[0][l] * INLET_VELOCITY / 3.0;
-            FNEW[5][l] = F[7][l] - 0.5 * (F[2][l] - F[4][l]) + U[0][l] * INLET_VELOCITY / 6.0;
-            FNEW[8][l] = F[6][l] + 0.5 * (F[2][l] - F[4][l]) + U[0][l] * INLET_VELOCITY / 6.0;
-        } else if (LMARK[l] == LMARK_UP_OUTLET) {  // up outlet
+        } else if (LMARK[l] == LMARK_CORNER_TOP_RIGHT) {
+            FNEW[3][l] = F[1][l];
+            FNEW[4][l] = F[2][l];
+            FNEW[7][l] = F[5][l];
+        } else if (LMARK[l] == LMARK_CORNER_BOT_RIGHT) {
+            FNEW[3][l] = F[1][l];
+            FNEW[2][l] = F[4][l];
+            FNEW[6][l] = F[8][l];
+        } else if (LMARK[l] == LMARK_TOP_OUTLET) {  // up outlet
             FNEW[4][l] = F[4][l - I];
             FNEW[7][l] = F[7][l - I];
             FNEW[8][l] = F[8][l - I];
-        } else if (LMARK[l] == LMARK_DOWN_OUTLET) {  // down outlet
+        } else if (LMARK[l] == LMARK_BOT_OUTLET) {  // down outlet
             FNEW[2][l] = F[2][l + I];
             FNEW[5][l] = F[5][l + I];
             FNEW[6][l] = F[6][l + I];
+        } else if (LMARK[l] == LMARK_LEFT_OUTLET) {
+            FNEW[1][l] = F[1][l + 1];
+            FNEW[5][l] = F[5][l + 1];
+            FNEW[8][l] = F[8][l + 1];
+            //FNEW[1][l] = F[3][l] + 2.0 * U[0][l] * INLET_VELOCITY / 3.0;
+            //FNEW[5][l] = F[7][l] - 0.5 * (F[2][l] - F[4][l]) + U[0][l] * INLET_VELOCITY / 6.0;
+            //FNEW[8][l] = F[6][l] + 0.5 * (F[2][l] - F[4][l]) + U[0][l] * INLET_VELOCITY / 6.0;
+        } else if (LMARK[l] == LMARK_RIGHT_OUTLET) {
+            FNEW[3][l] = F[3][l - 1];
+            FNEW[6][l] = F[6][l - 1];
+            FNEW[7][l] = F[7][l - 1];
         }
     }
 }
@@ -118,16 +133,19 @@ void calcFNEW2F() {
 
 //Computes velocity field from F
 void calcF2U(int l) {
-    if (LMARK[l] == LMARK_IN_TOP_WALL || LMARK[l] == LMARK_IN_BOT_WALL || LMARK[l] == LMARK_UP_LEFT_WALL || LMARK[l] == LMARK_DOWN_LEFT_WALL || LMARK[l] == LMARK_RIGHT_WALL || LMARK[l] == LMARK_UP_CORNER || LMARK[l] == LMARK_DOWN_CORNER) {  // no-slip condition along channel walls
+    if (LMARK[l] == LMARK_TOP_WALL || LMARK[l] == LMARK_BOT_WALL || LMARK[l] == LMARK_LEFT_WALL || LMARK[l] == LMARK_RIGHT_WALL) {  // no-slip condition along channel walls
+        U[1][l] = 0;
+        U[2][l] = 0;
+    } else if (LMARK[l] == LMARK_CORNER_BOT_LEFT || LMARK[l] == LMARK_CORNER_BOT_RIGHT || LMARK[l] == LMARK_CORNER_TOP_LEFT || LMARK[l] == LMARK_CORNER_TOP_RIGHT) {  // no-slip on corners
         U[1][l] = 0;
         U[2][l] = 0;
     } else if (LMARK[l] == LMARK_OBS_BULK) {  // nothing moving inside obstacle
         U[1][l] = 0;
         U[2][l] = 0;
-    } else if (LMARK[l] == LMARK_INLET) {  // left edge -- constant velocity (inlet)
-        U[1][l] = INLET_VELOCITY;
-        U[2][l] = 0;
-    } else if (LMARK[l] == LMARK_UP_OUTLET || LMARK[l] == LMARK_DOWN_OUTLET) {  // right edge -- open (absorbing) boundary
+    //} else if (LMARK[l] == LMARK_LEFT_OUTLET) {  // left edge -- constant velocity (inlet)
+    //    U[1][l] = INLET_VELOCITY;
+    //    U[2][l] = 0;
+    } else if (LMARK[l] == LMARK_BOT_OUTLET || LMARK[l] == LMARK_TOP_OUTLET || LMARK[l] == LMARK_LEFT_OUTLET || LMARK[l] == LMARK_RIGHT_OUTLET) {  // open (absorbing) boundaries on all four outlets
         double fex = 0.0, fey = 0.0, density = 0.0;
 
         for (int m = 0; m < LATTICE_VELOCITY_NUMBER; m++) {

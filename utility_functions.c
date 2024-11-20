@@ -96,17 +96,17 @@ bool isPointInActivityPattern(int l) {
     int i = i_vr(l);
     int j = j_vr(l);
 
-    // pattern along inlet channel
+    // pattern along horizontal channel
     int in_top_col = round(0.55 * J - 0.5);
     int in_bot_col = round(0.45 * J - 0.5);
-    int in_left_col = round(0.05 * I - 0.5);
-    int in_right_col = round(0.95 * I - 0.5);
+    int in_left_col = 0; //round(0.05 * I - 0.5);
+    int in_right_col = I - 1; //round(0.95 * I - 0.5);
 
-    // pattern along outlet channel
-    int out_top_col = round(0.45 * J + 0.5); //J;
-    int out_bot_col = 0; //round(0.55 * J + 0.5);
-    int out_left_col = round(0.85 * I - 0.5);
-    int out_right_col = round(0.95 * I - 0.5);
+    // pattern along vertical channel
+    int out_top_col = J - 1; //round(0.95 * J + 0.5);
+    int out_bot_col = 0; //round(0.05 * J + 0.5);
+    int out_left_col = round(0.45 * I - 0.5);
+    int out_right_col = round(0.55 * I - 0.5);
 
     if (i >= in_left_col && i <= in_right_col && j >= in_bot_col && j <= in_top_col) {
         return true;
