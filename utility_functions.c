@@ -112,9 +112,9 @@ bool isPointInActivityPattern(int l) {
         return true;
     }
 
-    if (i >= out_left_col && i <= out_right_col && j >= out_bot_col && j <= out_top_col) {
-        return true;
-    }
+    //if (i >= out_left_col && i <= out_right_col && j >= out_bot_col && j <= out_top_col) {
+    //    return true;
+    //}
 
     return false;
 }

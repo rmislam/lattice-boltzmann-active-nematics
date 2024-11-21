@@ -12,15 +12,15 @@ char FILE_NAME[80] = "output/active_nematic";
 #define NMAX (I*J)
 
 //Total number of time steps in the simulation
-#define TIME_STEPS 300000
+#define TIME_STEPS 200000
 //On how many steps the fields are written to a file
 #define TIME_WRITE 1000
 
 // How many steps to wait before writing data files
-#define TIME_START_WRITE 40000
+#define TIME_START_WRITE 0
 
 // How long to wait for thermal equilibrium before applying defects and activity
-#define WARM_UP_STEPS 40000
+#define WARM_UP_STEPS 100000
 
 //Number of velocity vectors within the model -- in this case D2Q9 -- 9 velocities
 #define LATTICE_VELOCITY_NUMBER 9
@@ -42,7 +42,7 @@ int STPROC = 2;
 // 0.35 // 0.01 //0.1 // 1.  // -0.01
 
 //Time step
-#define DT 0.035 // 0.002 // 0.0001   // try 0.01 or 0.005
+#define DT 0.04 // 0.002 // 0.0001   // try 0.01 or 0.005
 
 //relaxation time of the Lb scheme
 #define TAUF (0.55 * DT) // corresponds to viscosity of 1/3, taking into account GAMMA // (1.0 * DT)  // must be greater than 0.5 * DT

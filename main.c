@@ -120,10 +120,24 @@ int main(int argc, char** args){
         U[1][l] = INLET_VELOCITY; //0.0; //0.001 * cos(angle);
         U[2][l] = 0.0; //0.001 * sin(angle);
 
-        // Initialize director to point between quadrants II and IV
-        double angle = 0.75 * M_PI;
-        Q[0][l] = 1.0 / 2.0 * cos(2 * angle);  //Qxx component
-        Q[1][l] = 1.0 / 2.0 * sin(2 * angle);  //Qxy component
+        if (i < left_col || i > right_col) {
+            double angle = 0.5 * M_PI;
+            Q[0][l] = 1.0 / 2.0 * cos(2 * angle);  //Qxx component
+            Q[1][l] = 1.0 / 2.0 * sin(2 * angle);  //Qxy component
+        } else if (j < bot_row || j > top_row) {
+            double angle = 0;
+            Q[0][l] = 1.0 / 2.0 * cos(2 * angle);  //Qxx component
+            Q[1][l] = 1.0 / 2.0 * sin(2 * angle);  //Qxy component
+        } else {
+            // Initialize director to point between quadrants II and IV
+            double angle = 0.75 * M_PI;
+            Q[0][l] = 1.0 / 2.0 * cos(2 * angle);  //Qxx component
+            Q[1][l] = 1.0 / 2.0 * sin(2 * angle);  //Qxy component
+        }
+
+        //double angle = 0.75 * M_PI;
+        //Q[0][l] = 1.0 / 2.0 * cos(2 * angle);  //Qxx component
+        //Q[1][l] = 1.0 / 2.0 * sin(2 * angle);  //Qxy component
     }
 
     // defect location

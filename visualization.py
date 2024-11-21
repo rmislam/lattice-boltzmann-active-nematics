@@ -5,11 +5,11 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import matplotlib.animation as animation
 
-TIME_START = 40000
-TIME_STEPS = 300000
+TIME_START = 100000
+TIME_STEPS = 200000
 TIME_WRITE = 1000
 NUM_FILES = int((TIME_STEPS - TIME_START) / TIME_WRITE) + 1
-DEFECT_ORDER_THRESHOLD = 0.1  # lower is stricter
+DEFECT_ORDER_THRESHOLD = 0.2  # lower is stricter
 
 I = 101
 J = 101
@@ -76,8 +76,9 @@ def updateAx1(i):
     corner_bot_right = np.array([xmin + v_right_frac * (xmax - xmin), ymin + h_bot_frac * (ymax - ymin)])
     corner_bot_left = np.array([xmin + v_left_frac * (xmax - xmin), ymin + h_bot_frac * (ymax - ymin)])
 
-    plus = np.vstack((h_point2, corner_top_left, v_point2, v_point3, corner_top_right, h_point3, h_point4, corner_bot_right, v_point4, v_point1, corner_bot_left, h_point1))
-    activity_pattern = patches.Polygon(plus, facecolor='xkcd:gold', alpha=0.3)
+    #plus = np.vstack((h_point2, corner_top_left, v_point2, v_point3, corner_top_right, h_point3, h_point4, corner_bot_right, v_point4, v_point1, corner_bot_left, h_point1))
+    channel = np.vstack((h_point2, h_point3, h_point4, h_point1))
+    activity_pattern = patches.Polygon(channel, facecolor='xkcd:gold', alpha=0.3)
     ax1.add_patch(activity_pattern)
 
     rect_top_left = patches.Polygon(np.vstack((np.array([xmin, ymin + h_chan_top_frac * (ymax - ymin)]), np.array([xmin + v_chan_left_frac * (xmax - xmin), ymin + h_chan_top_frac * (ymax - ymin)]), np.array([xmin + v_chan_left_frac * (xmax - xmin), ymax]), np.array([xmin, ymax]))), facecolor='xkcd:grey', alpha=1)
@@ -130,14 +131,14 @@ def updateAx2(i):
         if all(np.array([i1, i2, i3, i4, i5, i6, i7, i8]) < max_index):
             if defect_order < order[i1] and defect_order < order[i2] and defect_order < order[i3] and defect_order < order[i4] and defect_order < order[i5] and defect_order < order[i6] and defect_order < order[i7] and defect_order < order[i8]:
                 winding_number = 0
-                winding_number += computeAngleDiff(angle[i5], angle[i3]) #angle[i3] - angle[i5]
-                winding_number += computeAngleDiff(angle[i3], angle[i2]) #angle[i2] - angle[i3]
-                winding_number += computeAngleDiff(angle[i2], angle[i1]) #angle[i1] - angle[i2]
-                winding_number += computeAngleDiff(angle[i1], angle[i4]) #angle[i4] - angle[i1]
-                winding_number += computeAngleDiff(angle[i4], angle[i6]) #angle[i6] - angle[i4]
-                winding_number += computeAngleDiff(angle[i6], angle[i7]) #angle[i7] - angle[i6]
-                winding_number += computeAngleDiff(angle[i7], angle[i8]) #angle[i8] - angle[i7]
-                winding_number += computeAngleDiff(angle[i8], angle[i5]) #angle[i5] - angle[i8]
+                winding_number += computeAngleDiff(angle[i5], angle[i3])
+                winding_number += computeAngleDiff(angle[i3], angle[i2])
+                winding_number += computeAngleDiff(angle[i2], angle[i1])
+                winding_number += computeAngleDiff(angle[i1], angle[i4])
+                winding_number += computeAngleDiff(angle[i4], angle[i6])
+                winding_number += computeAngleDiff(angle[i6], angle[i7])
+                winding_number += computeAngleDiff(angle[i7], angle[i8])
+                winding_number += computeAngleDiff(angle[i8], angle[i5])
                 winding_number = np.round(winding_number / (2 * np.pi), decimals=1)
                 
                 if winding_number == 0.5:
@@ -148,8 +149,6 @@ def updateAx2(i):
                     filtered_x_defects.append(x_defect)
                     filtered_y_defects.append(y_defect)
                     defect_colors.append('xkcd:azure')
-
-                #from IPython import embed; embed()
 
     ax2.clear()
     im = ax2.scatter(filtered_x_defects, filtered_y_defects, c=defect_colors)
@@ -174,8 +173,9 @@ def updateAx2(i):
     corner_bot_right = np.array([xmin + v_right_frac * (xmax - xmin), ymin + h_bot_frac * (ymax - ymin)])
     corner_bot_left = np.array([xmin + v_left_frac * (xmax - xmin), ymin + h_bot_frac * (ymax - ymin)])
 
-    plus = np.vstack((h_point2, corner_top_left, v_point2, v_point3, corner_top_right, h_point3, h_point4, corner_bot_right, v_point4, v_point1, corner_bot_left, h_point1))
-    activity_pattern = patches.Polygon(plus, facecolor='xkcd:gold', alpha=0.3)
+    #plus = np.vstack((h_point2, corner_top_left, v_point2, v_point3, corner_top_right, h_point3, h_point4, corner_bot_right, v_point4, v_point1, corner_bot_left, h_point1))
+    channel = np.vstack((h_point2, h_point3, h_point4, h_point1))
+    activity_pattern = patches.Polygon(channel, facecolor='xkcd:gold', alpha=0.3)
     ax2.add_patch(activity_pattern)
 
     rect_top_left = patches.Polygon(np.vstack((np.array([xmin, ymin + h_chan_top_frac * (ymax - ymin)]), np.array([xmin + v_chan_left_frac * (xmax - xmin), ymin + h_chan_top_frac * (ymax - ymin)]), np.array([xmin + v_chan_left_frac * (xmax - xmin), ymax]), np.array([xmin, ymax]))), facecolor='xkcd:grey', alpha=1)
@@ -196,7 +196,7 @@ def updateAx2(i):
 
 
 # Create the animation object
-#velocity_animation_fig = animation.FuncAnimation(fig1, updateAx1, frames=NUM_FILES, interval=20, blit=True, repeat_delay=2,)
-orientation_animation_fig = animation.FuncAnimation(fig2, updateAx2, frames=NUM_FILES, interval=20, blit=True, repeat_delay=2,)
-#velocity_animation_fig.save("velocity.gif", dpi=400, savefig_kwargs=dict(facecolor='xkcd:white'))
+velocity_animation_fig = animation.FuncAnimation(fig1, updateAx1, frames=NUM_FILES, interval=50, blit=True, repeat_delay=2,)
+orientation_animation_fig = animation.FuncAnimation(fig2, updateAx2, frames=NUM_FILES, interval=50, blit=True, repeat_delay=2,)
+velocity_animation_fig.save("velocity.gif", dpi=400, savefig_kwargs=dict(facecolor='xkcd:white'))
 orientation_animation_fig.save("orientation.gif", dpi=400, savefig_kwargs=dict(facecolor='xkcd:white'))
