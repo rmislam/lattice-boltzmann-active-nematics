@@ -1,26 +1,38 @@
 //utility_functions.h
-int i_vr(int l);
-int j_vr(int l);
 void initialiseE();
 void write_velocity(int t);
 void write_orientation(int t);
 
 //lattice_Boltzmann.c
-void computeFeq();
-void compute_LB_step();
-void computeP();
-void computeBounceBack();
-int calcLBlnew(int l, int m);
-void calcFNEW2F();
-void calcF2U(int l);
-void compute_sigma();
-void enforceBoundaryConditions();
+void compute_LB_step(double **U, int **E, double **FNEW, double **F, double **FEQ, double **P, double **Q, double **H, double **SIGMA, double *WKONST, double *ACTIVITY, char *LMARK);
+
+__global__
+void computeFeq(double **U, int **E, double **FEQ, double *WKONST);
+
+__global__
+void computeSigma(double **SIGMA, double **Q, double **H, double *ACTIVITY, char *LMARK);
+
+__global__
+void computeP(double **U, int **E, double **P, double **SIGMA, double *WKONST, char *LMARK);
+
+__global__
+void computeFNEW(double **FNEW, double **F, double **FEQ, int **E, double **P);
+
+__global__
+void enforceBoundaryConditions(double **FNEW, double **F, double **U);
+
+__global__
+void calcFNEW2F(double **FNEW, double **F);
+
+__global__
+void calcF2U(double **U, int **E, double **F, double **SIGMA, char *LMARK);
+
 
 //finite_difference.c
-void compute_FD_step();
-void calcQNEW2Q();
-void compute_Q_laplacian(int l, double* Q_laplacian);
-void compute_u1(int l,double* Q_laplacian,double* u1);
-void compute_u2(int l, double* u2);
-void compute_u3(int l, double* u3);
+void compute_FD_step(double **U, double **Q, double **QNEW, double **H, char *LMARK);
 
+__global__
+void computeQNEW(double **U, double **Q, double **QNEW, double **H, char *LMARK);
+
+__global__
+void calcQNEW2Q(double **Q, double **QNEW);

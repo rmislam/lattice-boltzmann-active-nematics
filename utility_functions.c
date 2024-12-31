@@ -5,16 +5,6 @@ struct point {
     int j;    
 };
 
-//Line number in the x direction. Range is from 0 to I-1.
-int i_vr(int l) {
-    return l % I; 
-}
-
-//Line number in the y direction
-int j_vr(int l) {
-    return (l % (I * J)) / I; 
-}
-
 //Characteristic velocity vectors of the LB model.
 
 //#################################
@@ -56,7 +46,7 @@ void write_velocity(int t) {
     file = fopen(buf, "w");
     
     for (int l = 0; l < NMAX; l++) {
-        fprintf(file, "%d %d %lf %lf %lf\n", i_vr(l), j_vr(l), U[0][l], U[1][l], U[2][l]);
+        fprintf(file, "%d %d %lf %lf %lf\n", (l % I), ((l % (I * J)) / I), U[0][l], U[1][l], U[2][l]);
     }
     
     fclose(file);
@@ -72,7 +62,7 @@ void write_orientation(int t) {
     for (int l = 0; l < NMAX; l++) {
         double degree_of_order = sqrt(4 * (Q[0][l] * Q[0][l] + Q[1][l] * Q[1][l]));
         double angle = 0.5 * atan2(Q[1][l], Q[0][l]);
-        fprintf(file, "%d %d %lf %lf\n", i_vr(l), j_vr(l), degree_of_order, angle);
+        fprintf(file, "%d %d %lf %lf\n", (l % I), ((l % (I * J)) / I), degree_of_order, angle);
     }
     
     fclose(file);
@@ -80,8 +70,8 @@ void write_orientation(int t) {
 
 struct point rotate_point(int l, int i_center, int j_center, double angle) {
     struct point point_rot;
-    int i = i_vr(l);
-    int j = j_vr(l);
+    int i = (l % I);
+    int j = ((l % (I * J)) / I);
     int rel_i = i - i_center;
     //int rel_j = j - j_center;
     int rel_j = j_center - j;
@@ -93,8 +83,8 @@ struct point rotate_point(int l, int i_center, int j_center, double angle) {
 }
 
 bool isPointInActivityPattern(int l) {
-    int i = i_vr(l);
-    int j = j_vr(l);
+    int i = (l % I);
+    int j = ((l % (I * J)) / I);
 
     // triangles are isosceles pointing right
     // triangle 1 (leftmost)
