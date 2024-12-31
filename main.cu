@@ -22,7 +22,10 @@ char *LMARK;
 
 
 int main(int argc, char** args){
-    
+    clock_t start_time, end_time;
+    double time_elapsed;
+    start_time = clock();
+
     //Allocation of data arrays
     cudaMallocManaged(&U, 3 * sizeof(double*));  //velocity field; 0th component is density
     for (int m = 0; m < 3; m++) cudaMallocManaged(&U[m], NMAX * sizeof(double));
@@ -173,6 +176,10 @@ int main(int argc, char** args){
     cudaFree(LMARK);
 
     cudaFree(ACTIVITY);
-    
+
+    end_time = clock();
+    time_elapsed = ((double) (end_time - start_time)) / CLOCKS_PER_SEC;
+    printf("Simulation took %f seconds to complete\n", time_elapsed);
+
     return 0;
 }

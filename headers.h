@@ -19,10 +19,7 @@ __global__
 void computeFNEW(double **FNEW, double **F, double **FEQ, int **E, double **P);
 
 __global__
-void enforceBoundaryConditions(double **FNEW, double **F, double **U);
-
-__global__
-void calcFNEW2F(double **FNEW, double **F);
+void enforceBoundaryConditionsAndCalcFNEW2F(double **FNEW, double **F, double **U);
 
 __global__
 void calcF2U(double **U, int **E, double **F, double **SIGMA, char *LMARK);

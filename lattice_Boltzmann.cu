@@ -3,7 +3,6 @@ void compute_LB_step(double **U, int **E, double **FNEW, double **F, double **FE
     int num_blocks = (NMAX + BLOCK_SIZE - 1) / BLOCK_SIZE;
 
     computeFeq<<<num_blocks, BLOCK_SIZE>>>(U, E, FEQ, WKONST);   //Compute the equilibrium distribution
-    cudaDeviceSynchronize();
 
     computeSigma<<<num_blocks, BLOCK_SIZE>>>(SIGMA, Q, H, ACTIVITY, LMARK);  //Compute stress tensor
     cudaDeviceSynchronize();
@@ -14,10 +13,7 @@ void compute_LB_step(double **U, int **E, double **FNEW, double **F, double **FE
     computeFNEW<<<num_blocks, BLOCK_SIZE>>>(FNEW, F, FEQ, E, P);  // Compute the new distribution values (i.e., apply the Boltzmann equation)
     cudaDeviceSynchronize();
 
-    enforceBoundaryConditions<<<num_blocks, BLOCK_SIZE>>>(FNEW, F, U);  // NOTE: be careful about copying FNEW to F at boundaries
-    cudaDeviceSynchronize();
-
-    calcFNEW2F<<<num_blocks, BLOCK_SIZE>>>(FNEW, F);  //Copy FNEW to F
+    enforceBoundaryConditionsAndCalcFNEW2F<<<num_blocks, BLOCK_SIZE>>>(FNEW, F, U);  // NOTE: be careful about copying FNEW to F at boundaries
     cudaDeviceSynchronize();
 
     calcF2U<<<num_blocks, BLOCK_SIZE>>>(U, E, F, SIGMA, LMARK);  //Compute the velocity field
@@ -111,7 +107,7 @@ void computeFNEW(double **FNEW, double **F, double **FEQ, int **E, double **P) {
 
 //Enforce bounce back for no-slip velocity condition
 __global__
-void enforceBoundaryConditions(double **FNEW, double **F, double **U) {
+void enforceBoundaryConditionsAndCalcFNEW2F(double **FNEW, double **F, double **U) {
     int index = blockIdx.x * blockDim.x + threadIdx.x;
     int stride = blockDim.x * gridDim.x;
 
@@ -133,16 +129,8 @@ void enforceBoundaryConditions(double **FNEW, double **F, double **U) {
             FNEW[6][l] = F[6][l - 1];
             FNEW[7][l] = F[7][l - 1];
         }
-    }
-}
 
-//Copies FNEW to F
-__global__
-void calcFNEW2F(double **FNEW, double **F) {
-    int index = blockIdx.x * blockDim.x + threadIdx.x;
-    int stride = blockDim.x * gridDim.x;
-
-    for (int l = index; l < NMAX; l += stride) {
+        // Copies FNEW to F
         for (int m = 0; m < LATTICE_VELOCITY_NUMBER; m++) {
             F[m][l] = FNEW[m][l];
         }
