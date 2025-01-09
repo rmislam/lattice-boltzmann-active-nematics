@@ -1,7 +1,6 @@
-
-//Created by Žiga Kos on Jan 18, 2021. Copyright 2021. All rights reserved.
-//ziga.kos@fmf.uni-lj.si, zigakos@mit.edu
-//Compile with gcc -o prog main.c -lm -lpthread -march=native -std=gnu99 -fopenmp -Wall
+// Extended by Russ Islam.
+// Original tutorial code created by Žiga Kos on Jan 18, 2021. Copyright 2021. All rights reserved.
+// Compile with gcc -o prog main.c -lm -lpthread -march=native -std=gnu99 -fopenmp -Wall
 
 #include <math.h>
 #include <stdio.h>
