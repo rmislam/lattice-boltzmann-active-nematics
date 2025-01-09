@@ -126,9 +126,9 @@ int main(int argc, char** args){
     
     //Compute distribution functions from velocity initialization
     computeFeq();
-    #pragma omp parallel for num_threads(STPROC) schedule(dynamic)
-    for (int l = 0; l < NMAX; l++) {
-        for(int m = 0; m < LATTICE_VELOCITY_NUMBER; m++) {
+    #pragma omp parallel for
+    for(int m = 0; m < LATTICE_VELOCITY_NUMBER; m++) {
+        for (int l = 0; l < NMAX; l++) {
             F[m][l] = FEQ[m][l];
             FNEW[m][l] = F[m][l];
         }
@@ -137,6 +137,7 @@ int main(int argc, char** args){
     //Main part - time evolution
     for (int t = 0; t < TIME_STEPS; t++) {
         if (t == WARM_UP_STEPS) {
+            #pragma omp parallel for
             for (int l = 0; l < NMAX; l++) {
                 if (isPointInActivityPattern(l)) ACTIVITY[l] = ALPHA;
                 else ACTIVITY[l] = 0.0;

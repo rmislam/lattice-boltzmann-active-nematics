@@ -103,8 +103,8 @@ bool isPointInActivityPattern(int l) {
     int in_right_col = round(0.95 * I - 0.5);
 
     // pattern along outlet channel
-    int out_top_col = round(0.45 * J + 0.5); //J;
-    int out_bot_col = 0; //round(0.55 * J + 0.5);
+    int out_top_col = J - 1; //round(0.45 * J + 0.5); //J;
+    int out_bot_col = round(0.55 * J + 0.5); // 0;
     int out_left_col = round(0.85 * I - 0.5);
     int out_right_col = round(0.95 * I - 0.5);
 

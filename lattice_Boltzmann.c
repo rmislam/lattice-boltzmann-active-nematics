@@ -3,9 +3,9 @@ void compute_LB_step() {
     computeFeq();   //Compute the equilibrium distribution
     computeP(); //Compute the forcing terms
     
-    #pragma omp parallel for num_threads(STPROC) schedule(dynamic)
-    for (int l = 0; l < NMAX; l++) {
-        for (int m = 0; m < LATTICE_VELOCITY_NUMBER; m++) {
+    #pragma omp parallel for
+    for (int m = 0; m < LATTICE_VELOCITY_NUMBER; m++) {
+        for (int l = 0; l < NMAX; l++) {
             int lnew = calcLBlnew(l, m);   //Streaming location
             if (lnew >= NMAX || lnew < 0) continue;
             FNEW[m][lnew] = F[m][l] + DT * ((FEQ[m][l] - F[m][l]) / TAUF + P[m][l]);
@@ -16,13 +16,13 @@ void compute_LB_step() {
     calcFNEW2F();  //Copies FNEW to F
     
     //Compute the velocity field
-    #pragma omp parallel for num_threads(STPROC) schedule(dynamic)
+    #pragma omp parallel for
     for (int l = 0; l < NMAX; l++) calcF2U(l);
 }
 
  //Computes equilibrium distribution function
 void computeFeq() {
-    #pragma omp parallel for num_threads(STPROC) schedule(dynamic)
+    #pragma omp parallel for
     for (int l = 0; l < NMAX; l++) {
         double u2 = U[1][l] * U[1][l] + U[2][l] * U[2][l];	//Velocity squared
 
@@ -38,7 +38,7 @@ void computeP() {
     //Compute stress tensor
     compute_sigma();
     
-    #pragma omp parallel for num_threads(STPROC) schedule(dynamic)
+    #pragma omp parallel for
     for (int l = 0; l < NMAX; l++) {
         if (!(LMARK[l] == LMARK_BULK)) continue;
         //Compute the derivatives of the stress tensor and the force
@@ -46,6 +46,7 @@ void computeP() {
         double forceY = (SIGMA[2][l + 1] - SIGMA[2][l - 1]) / 2.0 + (SIGMA[3][l + I] - SIGMA[3][l - I]) / 2.0 - MU * U[2][l];
 
         double uF = U[1][l] * forceX + U[2][l] * forceY;  //Product of force and velocity
+
         for (int m = 0; m < LATTICE_VELOCITY_NUMBER; m++) {
             double ue = U[1][l] * E[m][0] + U[2][l] * E[m][1];	//Product of velocity and characteristic vectors
             double eF = E[m][0] * forceX + E[m][1] * forceY;  //Product of force and characteristic vectors
@@ -64,7 +65,7 @@ int calcLBlnew(int l, int m) {
 
 //Enforce bounce back for no-slip velocity condition
 void enforceBoundaryConditions() {
-    #pragma omp parallel for num_threads(STPROC) schedule(dynamic)
+    #pragma omp parallel for
     for (int l = 0; l < NMAX; l++) {
         if (LMARK[l] == LMARK_IN_TOP_WALL) {  // top edge -- no-slip
             FNEW[4][l] = F[2][l];
@@ -108,9 +109,9 @@ void enforceBoundaryConditions() {
 
 //Copies FNEW to F
 void calcFNEW2F() {
-    #pragma omp parallel for num_threads(STPROC) schedule(dynamic)
-    for (int l = 0; l < NMAX; l++) {
-        for (int m = 0; m < LATTICE_VELOCITY_NUMBER; m++) {
+    #pragma omp parallel for
+    for (int m = 0; m < LATTICE_VELOCITY_NUMBER; m++) {
+        for (int l = 0; l < NMAX; l++) {
             F[m][l] = FNEW[m][l];
         }
     }
@@ -159,7 +160,7 @@ void calcF2U(int l) {
 
 //Compute stress tensor
 void compute_sigma() {
-    #pragma omp parallel for num_threads(STPROC) schedule(dynamic)
+    #pragma omp parallel for
     for (int l = 0; l < NMAX; l++) {
         if (!(LMARK[l] == LMARK_BULK)) continue;
         // NOTE: positive activity is extensile, negative activity is contractile

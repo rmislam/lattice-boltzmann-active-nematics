@@ -1,6 +1,6 @@
 //Make a step in the Q-tensor finite difference evolution
 void compute_FD_step() {
-    #pragma omp parallel for num_threads(STPROC) schedule(dynamic)
+    #pragma omp parallel for
     for (int l = 0; l < NMAX; l++) {
         if (LMARK[l] == LMARK_BULK) {
             double u1[2], u2[2], u3[2];
@@ -48,7 +48,7 @@ void compute_FD_step() {
 
 //Write QNEW back to Q and implement open boundaries on inlet and outlets
 void calcQNEW2Q() {
-    #pragma omp parallel for num_threads(STPROC) schedule(dynamic)
+    #pragma omp parallel for
     for (int l = 0; l < NMAX; l++) {
         if (LMARK[l] == LMARK_INLET) {
             for(int m = 0; m < 2; m++) {

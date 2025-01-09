@@ -1,22 +1,31 @@
 import numpy as np
 import pandas as pd
+pd.options.mode.chained_assignment = None
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import matplotlib.animation as animation
 
 TIME_START = 100000
 TIME_STEPS = 200000
-TIME_WRITE = 400
+TIME_WRITE = 500
 NUM_FILES = int((TIME_STEPS - TIME_START) / TIME_WRITE) + 1
 DEFECT_ORDER_THRESHOLD = 0.1  # lower is stricter
+
+I = 101
+J = 101
+max_index = I * J - 1
+
+h_chan_top_frac = 0.6
+h_chan_bot_frac = 0.4
+v_chan_left_frac = 0.8
 
 in_top_frac = 0.55
 in_bot_frac = 0.45
 in_left_frac = 0.05
 in_right_frac = 0.95
 
-out_top_frac = 0.45 #1
-out_bot_frac = 0 #0.55
+out_top_frac = 1 # 0.45
+out_bot_frac = 0.55 #0
 out_left_frac = 0.85
 out_right_frac = 0.95
 
@@ -25,6 +34,17 @@ fig1.subplots_adjust(left=0, bottom=0, right=1, top=1, wspace=None, hspace=None)
 fig2, ax2 = plt.subplots()
 fig2.subplots_adjust(left=0, bottom=0, right=1, top=1, wspace=None, hspace=None)
 
+
+def computeAngleDiff(startAngle, endAngle):
+    min_index = np.argmin([np.abs(endAngle - startAngle), np.abs(endAngle - startAngle + np.pi), np.abs(endAngle - startAngle - np.pi)])
+
+    if min_index == 0:
+        return endAngle - startAngle
+    elif min_index == 1:
+        return endAngle - startAngle + np.pi
+    else:
+        return endAngle - startAngle - np.pi
+    
 
 def updateAx1(i):
     df_velocity = pd.read_csv('output/active_nematic_velocity_' + str(TIME_START + i * TIME_WRITE) + '.dat', sep=' ', header=None)
@@ -57,6 +77,14 @@ def updateAx1(i):
     activity_pattern = patches.Polygon(rectangle, facecolor='xkcd:gold', alpha=0.3)
     ax1.add_patch(activity_pattern)
 
+    # top obstacle
+    rect_top_left = patches.Polygon(np.vstack((np.array([xmin, ymin + h_chan_top_frac * (ymax - ymin)]), np.array([xmin + v_chan_left_frac * (xmax - xmin), ymin + h_chan_top_frac * (ymax - ymin)]), np.array([xmin + v_chan_left_frac * (xmax - xmin), ymax]), np.array([xmin, ymax]))), facecolor='xkcd:grey', alpha=1)
+    ax1.add_patch(rect_top_left)
+
+    # bottom obstacle
+    rect_bot_left = patches.Polygon(np.vstack((np.array([xmin, ymin]), np.array([xmin, ymin + h_chan_bot_frac * (ymax - ymin)]), np.array([xmin + v_chan_left_frac * (xmax - xmin), ymin + h_chan_bot_frac * (ymax - ymin)]), np.array([xmin + v_chan_left_frac * (xmax - xmin), ymin]))), facecolor='xkcd:grey', alpha=1)
+    ax1.add_patch(rect_bot_left)
+
     ax1.axis('equal')
 
     return im,
@@ -67,15 +95,54 @@ def updateAx2(i):
     y = df_orientation.iloc[:, 1]
     order = df_orientation.iloc[:, 2]
     angle = df_orientation.iloc[:, 3]
+    angle[angle < 0] += np.pi  # director goes from 0 to np.pi, not 0 to 2 * np.pi
+    angle[angle > np.pi] -= np.pi
     cos = np.cos(angle)
     sin = np.sin(angle)
 
     x_defects = x.loc[order <= DEFECT_ORDER_THRESHOLD]
     y_defects = y.loc[order <= DEFECT_ORDER_THRESHOLD]
-    #from IPython import embed; embed()
+
+    filtered_x_defects = []
+    filtered_y_defects = []
+    defect_colors = []
+
+    for x_defect, y_defect in zip(x_defects.to_numpy(), y_defects.to_numpy()):
+        i0 = x_defect + y_defect * I
+        i1 = x_defect - 1 + (y_defect + 1) * I
+        i2 = x_defect + (y_defect + 1) * I
+        i3 = x_defect + 1 + (y_defect + 1) * I
+        i4 = x_defect - 1 + y_defect * I
+        i5 = x_defect + 1 + y_defect * I
+        i6 = x_defect - 1 + (y_defect - 1) * I
+        i7 = x_defect + (y_defect - 1) * I
+        i8 = x_defect + 1 + (y_defect - 1) * I
+        defect_order = order[i0]
+
+        if all(np.array([i1, i2, i3, i4, i5, i6, i7, i8]) < max_index):
+            if defect_order < order[i1] and defect_order < order[i2] and defect_order < order[i3] and defect_order < order[i4] and defect_order < order[i5] and defect_order < order[i6] and defect_order < order[i7] and defect_order < order[i8]:
+                winding_number = 0
+                winding_number += computeAngleDiff(angle[i5], angle[i3])
+                winding_number += computeAngleDiff(angle[i3], angle[i2])
+                winding_number += computeAngleDiff(angle[i2], angle[i1])
+                winding_number += computeAngleDiff(angle[i1], angle[i4])
+                winding_number += computeAngleDiff(angle[i4], angle[i6])
+                winding_number += computeAngleDiff(angle[i6], angle[i7])
+                winding_number += computeAngleDiff(angle[i7], angle[i8])
+                winding_number += computeAngleDiff(angle[i8], angle[i5])
+                winding_number = np.round(winding_number / (2 * np.pi), decimals=1)
+                
+                if winding_number == 0.5:
+                    filtered_x_defects.append(x_defect)
+                    filtered_y_defects.append(y_defect)
+                    defect_colors.append('xkcd:red')
+                elif winding_number == -0.5:
+                    filtered_x_defects.append(x_defect)
+                    filtered_y_defects.append(y_defect)
+                    defect_colors.append('xkcd:azure')
 
     ax2.clear()
-    im = ax2.scatter(x_defects, y_defects, c='xkcd:azure')
+    im = ax2.scatter(filtered_x_defects, filtered_y_defects, c=defect_colors)
     im = ax2.quiver(x, y, cos, sin, pivot='mid', width=0.0005, color='xkcd:royal blue', headlength=0, headaxislength=0)  # headless quivers for nematics
     ax2.set_axis_off()
     xmin, xmax = np.min(x), np.max(x)
@@ -98,6 +165,14 @@ def updateAx2(i):
     rectangle = np.vstack((out_point1, out_point2, out_point3, out_point4))
     activity_pattern = patches.Polygon(rectangle, facecolor='xkcd:gold', alpha=0.3)
     ax2.add_patch(activity_pattern)
+
+    # top obstacle
+    rect_top_left = patches.Polygon(np.vstack((np.array([xmin, ymin + h_chan_top_frac * (ymax - ymin)]), np.array([xmin + v_chan_left_frac * (xmax - xmin), ymin + h_chan_top_frac * (ymax - ymin)]), np.array([xmin + v_chan_left_frac * (xmax - xmin), ymax]), np.array([xmin, ymax]))), facecolor='xkcd:grey', alpha=1)
+    ax2.add_patch(rect_top_left)
+
+    # bottom obstacle
+    rect_bot_left = patches.Polygon(np.vstack((np.array([xmin, ymin]), np.array([xmin, ymin + h_chan_bot_frac * (ymax - ymin)]), np.array([xmin + v_chan_left_frac * (xmax - xmin), ymin + h_chan_bot_frac * (ymax - ymin)]), np.array([xmin + v_chan_left_frac * (xmax - xmin), ymin]))), facecolor='xkcd:grey', alpha=1)
+    ax2.add_patch(rect_bot_left)
 
     ax2.axis('equal')
 

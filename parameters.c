@@ -14,7 +14,7 @@ char FILE_NAME[80] = "output/active_nematic";
 //Total number of time steps in the simulation
 #define TIME_STEPS 200000
 //On how many steps the fields are written to a file
-#define TIME_WRITE 400
+#define TIME_WRITE 500
 
 // How many steps to wait before writing data files
 #define TIME_START_WRITE 100000
@@ -25,7 +25,7 @@ char FILE_NAME[80] = "output/active_nematic";
 //Number of velocity vectors within the model -- in this case D2Q9 -- 9 velocities
 #define LATTICE_VELOCITY_NUMBER 9
 
-//Number of CPU cores for the paralelisation
+//Number of CPU cores for parallelization
 int STPROC = 2;
 
 //Free energy elastic constant
