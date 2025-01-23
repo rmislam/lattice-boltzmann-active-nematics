@@ -5,14 +5,14 @@ char FILE_NAME[80] = "output/active_nematic";
 #define M_PI 3.14159265358979323846
 
 //Number of mesh points
-#define I 151 // 301
-#define J 41  // 81
+#define I 151
+#define J 41
 
 //Total number of points
 #define NMAX (I*J)
 
 //Total number of time steps in the simulation
-#define TIME_STEPS 40000
+#define TIME_STEPS 10000
 //On how many steps the fields are written to a file
 #define TIME_WRITE 200
 
@@ -68,4 +68,4 @@ int STPROC = 2;
 #define AHEIGHTFRAC 0.2
 
 //CUDA parameters
-#define BLOCK_SIZE 256
+#define BLOCK_SIZE 32

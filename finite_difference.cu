@@ -78,7 +78,6 @@ void computeQNEW(double **U, double **Q, double **QNEW, double **H, char *LMARK)
         double degree_of_order = 1.;
         double angle = 0.5 * M_PI; // vertical (homeotropic) anchoring at top and bottom boundaries  //0.25 * M_PI;
 
-        // NOTE: maybe I can set this once at the beginning, and never set it again
         if (((l % (I * J)) / I) == 0 || ((l % (I * J)) / I) == J - 1) {
             // infinite homeotropic anchoring at top and bottom
             QNEW[0][l] = degree_of_order / 2.0 * cos(2 * angle);   //Qxx component

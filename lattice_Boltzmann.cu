@@ -13,10 +13,13 @@ void compute_LB_step(double **U, int **E, double **FNEW, double **F, double **FE
     computeFNEW<<<num_blocks, BLOCK_SIZE>>>(FNEW, F, FEQ, E, P);  // Compute the new distribution values (i.e., apply the Boltzmann equation)
     cudaDeviceSynchronize();
 
-    enforceBoundaryConditionsAndCalcFNEW2F<<<num_blocks, BLOCK_SIZE>>>(FNEW, F, U);  // NOTE: be careful about copying FNEW to F at boundaries
-    cudaDeviceSynchronize();
+    //enforceBoundaryConditionsAndCalcFNEW2F<<<num_blocks, BLOCK_SIZE>>>(FNEW, F, U);  // NOTE: be careful about copying FNEW to F at boundaries
+    //cudaDeviceSynchronize();
 
-    calcF2U<<<num_blocks, BLOCK_SIZE>>>(U, E, F, SIGMA, LMARK);  //Compute the velocity field
+    //calcF2U<<<num_blocks, BLOCK_SIZE>>>(U, E, F, SIGMA, LMARK);  //Compute the velocity field
+    //cudaDeviceSynchronize();
+
+    enforceBCAndCalcFNEW2F2U<<<num_blocks, BLOCK_SIZE>>>(FNEW, F, U, E, SIGMA, LMARK);
     cudaDeviceSynchronize();
 }
 
@@ -144,6 +147,72 @@ void calcF2U(double **U, int **E, double **F, double **SIGMA, char *LMARK) {
     int stride = blockDim.x * gridDim.x;
 
     for (int l = index; l < NMAX; l += stride) {
+        if (((l % (I * J)) / I) == 0 || ((l % (I * J)) / I) == J - 1) {  // top and bottom edges -- no-slip condition
+            U[1][l] = 0;
+            U[2][l] = 0;
+        } else if ((l % I) == 0 && ((l % (I * J)) / I) > 0 && ((l % (I * J)) / I) < J - 1) {  // left edge -- constant velocity (inlet)
+            U[1][l] = INLET_VELOCITY;
+            U[2][l] = 0;
+        } else if ((l % I) == I - 1 && ((l % (I * J)) / I) > 0 && ((l % (I * J)) / I) < J - 1) {  // right edge -- open (absorbing) boundary
+            double fex = 0.0, fey = 0.0, density = 0.0;
+
+            for (int m = 0; m < LATTICE_VELOCITY_NUMBER; m++) {
+                density += F[m][l];
+                fex += F[m][l] * E[m][0];
+                fey += F[m][l] * E[m][1];
+            }
+
+            U[1][l] = fex / density;
+            U[2][l] = fey / density;
+            U[0][l] = density;
+        } else if (LMARK[l] == LMARKBULK) {
+            double fex = 0.0, fey = 0.0, density = 0.0;
+
+            for (int m = 0; m < LATTICE_VELOCITY_NUMBER; m++) {
+                density += F[m][l];
+                fex += F[m][l] * E[m][0];
+                fey += F[m][l] * E[m][1];
+            }
+
+            double forceX = (SIGMA[0][l + 1] - SIGMA[0][l - 1]) / 2.0 + (SIGMA[1][l + I] - SIGMA[1][l - I]) / 2.0 - MU * U[1][l];
+            double forceY = (SIGMA[2][l + 1] - SIGMA[2][l - 1]) / 2.0 + (SIGMA[3][l + I] - SIGMA[3][l - I]) / 2.0 - MU * U[2][l];
+
+            U[1][l] = fex / density + forceX * DT / 2.0 / density;
+            U[2][l] = fey / density + forceY * DT / 2.0 / density;
+            U[0][l] = density;
+        }
+    }
+}
+
+__global__
+void enforceBCAndCalcFNEW2F2U(double **FNEW, double **F, double **U, int **E, double **SIGMA, char *LMARK) {
+    int index = blockIdx.x * blockDim.x + threadIdx.x;
+    int stride = blockDim.x * gridDim.x;
+
+    for (int l = index; l < NMAX; l += stride) {
+        if (((l % (I * J)) / I) == J - 1) {  // top edge -- no-slip
+            FNEW[4][l] = F[2][l];
+            FNEW[7][l] = F[5][l];
+            FNEW[8][l] = F[6][l];
+        } else if (((l % (I * J)) / I) == 0) {  // bottom edge -- no-slip
+            FNEW[2][l] = F[4][l];
+            FNEW[5][l] = F[7][l];
+            FNEW[6][l] = F[8][l];
+        } else if ((l % I) == 0 && ((l % (I * J)) / I) > 0 && ((l % (I * J)) / I) < J - 1) {  // left edge -- fixed velocity inlet
+            FNEW[1][l] = F[3][l] + 2.0 * U[0][l] * INLET_VELOCITY / 3.0;
+            FNEW[5][l] = F[7][l] - 0.5 * (F[2][l] - F[4][l]) + U[0][l] * INLET_VELOCITY / 6.0;
+            FNEW[8][l] = F[6][l] + 0.5 * (F[2][l] - F[4][l]) + U[0][l] * INLET_VELOCITY / 6.0;
+        } else if ((l % I) == I - 1 && ((l % (I * J)) / I) > 0 && ((l % (I * J)) / I) < J - 1) {  // right edge -- open (absorbing) boundary
+            FNEW[3][l] = F[3][l - 1];
+            FNEW[6][l] = F[6][l - 1];
+            FNEW[7][l] = F[7][l - 1];
+        }
+
+        // Copies FNEW to F
+        for (int m = 0; m < LATTICE_VELOCITY_NUMBER; m++) {
+            F[m][l] = FNEW[m][l];
+        }
+
         if (((l % (I * J)) / I) == 0 || ((l % (I * J)) / I) == J - 1) {  // top and bottom edges -- no-slip condition
             U[1][l] = 0;
             U[2][l] = 0;
