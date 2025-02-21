@@ -64,38 +64,68 @@ int main(int argc, char** args){
     srand(seed);
     initialiseE(); //Initializes the lattice vectors
 
-    // defect location
-    double defect_x = round(0.05 * I + 0.5);
-    //double defect_x = round(0.24 * I - 0.5);
-    double defect_y = round(0.5 * J - 0.5);
-    double phi0 = 0.5 * M_PI;   // 0.5 * M_PI;
-    double topo_charge = 0.5;
+    // channel and obstacle structure
+    int bot_row = round(9 / 21. * J);
+    int top_row = round(12 / 21. * J);
+    int left_col = round(9 / 21. * I);
+    int right_col = round(12 / 21. * I);
 
     for (int l = 0; l < NMAX; l++) {
+        int i = l % I;
+        int j = (l % (I * J)) / I;
+
         //Logical markers
-        if ((l % I) == 0 || (l % I) == I - 1 || ((l % (I * J)) / I) == 0 || ((l % (I * J)) / I) == J - 1) LMARK[l] = LMARKBC;
-        else LMARK[l] = LMARKBULK;
+        if (i == 0 && j < top_row && j > bot_row) { // outlets
+            LMARK[l] = LMARK_LEFT_OUTLET;
+        } else if (i == I - 1 && j < top_row && j > bot_row) {
+            LMARK[l] = LMARK_RIGHT_OUTLET;
+        } else if (i > left_col && i < right_col && j == J - 1) {
+            LMARK[l] = LMARK_TOP_OUTLET;
+        } else if (i > left_col && i < right_col && j == 0) {
+            LMARK[l] = LMARK_BOT_OUTLET;
+        } else if (j == bot_row && (i < left_col || i > right_col)) { // walls
+            LMARK[l] = LMARK_BOT_WALL;
+        } else if (j == top_row && (i < left_col || i > right_col)) {
+            LMARK[l] = LMARK_TOP_WALL;
+        } else if (i == left_col && (j < bot_row || j > top_row)) {
+            LMARK[l] = LMARK_LEFT_WALL;
+        } else if (i == right_col && (j < bot_row || j > top_row)) {
+            LMARK[l] = LMARK_RIGHT_WALL;
+        } else if (i == left_col && j == bot_row) { // corners
+            LMARK[l] = LMARK_CORNER_BOT_LEFT;
+        } else if (i == right_col && j == bot_row) {
+            LMARK[l] = LMARK_CORNER_BOT_RIGHT;
+        } else if (i == left_col && j == top_row) {
+            LMARK[l] = LMARK_CORNER_TOP_LEFT;
+        } else if (i == right_col && j == top_row) {
+            LMARK[l] = LMARK_CORNER_TOP_RIGHT;
+        } else if ((i < left_col && j < bot_row) || (i > right_col && j < bot_row) || (i < left_col && j > top_row) || (i > right_col && j > top_row)) { // bulk
+            LMARK[l] = LMARK_OBS_BULK;
+        } else {
+            LMARK[l] = LMARK_BULK;
+        }
 
         if (isPointInActivityPattern(l)) ACTIVITY[l] = ALPHA;
         else ACTIVITY[l] = 0.0;
         
         //Velocity Field
-        double angle = 0.01 * (double)rand() / (double)((unsigned)RAND_MAX + 1);  // randomly initialize velocity field
+        //double angle = 0.01 * (double)rand() / (double)((unsigned)RAND_MAX + 1);  // randomly initialize velocity field
         U[0][l] = DENSITYINIT;
-        U[1][l] = INLET_VELOCITY; //0.0; //0.001 * cos(angle);
+        U[1][l] = 0.0; //0.001 * cos(angle);
         U[2][l] = 0.0; //0.001 * sin(angle);
         
         //Q tensor
-        double dx_defect = (double)(l % I) - defect_x;
-        double dy_defect = (double)((l % (I * J)) / I) - defect_y;
-        //angle = phi0 + topo_charge * atan2(dy_defect, dx_defect);
-        angle = phi0;
+        double degree_of_order = 1.;
+        double angle = 0.25 * M_PI;
 
-        if (dx_defect <= 0) {
-            angle += (1.0 - abs(dy_defect) / defect_y) * topo_charge * atan2(dy_defect, dx_defect);  // TODO: generalize this to work with the defect not being at the y midpoint
+        if ((i < left_col && j > bot_row && j < top_row) || (i > right_col && j > bot_row && j < top_row)) {
+            angle = 0.5 * M_PI;
+        } else if ((j < bot_row && i > left_col && i < right_col) || (j > top_row && i > left_col && i < right_col)) {
+            angle = 0.0;
         }
-        //angle = phi0 + cos(0.5 * M_PI * abs(dy_defect) / defect_y) * topo_charge * atan2(dy_defect, dx_defect);
-        //angle = M_PI * (double)rand() / (double)((unsigned)RAND_MAX + 1);  // randomly initialize Q tensor
+
+        Q[0][l] = degree_of_order / 2.0 * cos(2 * angle);  //Qxx component
+        Q[1][l] = degree_of_order / 2.0 * sin(2 * angle);  //Qxy component
 
         // NOTE:
         // Q = s * ([[ cos^2(theta) - 1/2,      cos(theta) * sin(theta) ],
@@ -104,10 +134,6 @@ int main(int argc, char** args){
         //               [ sin(2 * theta), -cos(2 * theta)]])      // using trig identities
         //
         // We only store two values for Q (Q11 and Q12) since Q22 = -Q11 and Q12 = Q21
-
-        double degree_of_order = 1.;  // degree of order (s) must be between -1/2 and 1
-        Q[0][l] = degree_of_order / 2.0 * cos(2 * angle);  //Qxx component
-        Q[1][l] = degree_of_order / 2.0 * sin(2 * angle);  //Qxy component
     }
     
     //Compute distribution functions from velocity initialization
@@ -122,14 +148,83 @@ int main(int argc, char** args){
             FNEW[m][l] = F[m][l];
         }
     }
+
+    //Q relaxation
+    printf("Starting Q relaxation without defects...\n");
+    for (int t = 0; t < TIME_PRE_EVOL; t++) {
+        if (t % TIME_WRITE == 0) {
+            write_velocity(t);
+            write_orientation(t);
+        }
+
+        for (int q_step = 0; q_step < N_EVOL_Q; q_step++) {
+            compute_FD_step(U, Q, QNEW, H, LMARK);
+        }
+    }
+    printf("Finished Q relaxation without defects\n");
+
+    // add defect
+    for (int l = 0; l < NMAX; l++) {
+        int i = l % I;
+        int j = (l % (I * J)) / I;
+
+        // defect location
+        double defect_x = 9.5; //round(0.05 * I - 0.5); // 9.5;
+        double defect_y = 209.5; // round(0.5 * J - 0.5);
+        double defect_size_x = 120;
+        double defect_size_y = 40;
+
+        double dy_defect = (double)(j) - defect_y;
+
+        if (dy_defect > 0.5 * J) {
+            dy_defect -= J;
+        }
+
+        if (dy_defect < -0.5 * J) {
+            dy_defect += J;
+        }
+
+        if (abs(dy_defect) <= 0.5 * defect_size_y) {
+            double dx_defect = (double)(i) - defect_x;
+
+            if (dx_defect > 0.5 * I) {
+                dx_defect -= I;
+            }
     
+            if (dx_defect < -0.5 * I) {
+                dx_defect += I;
+            }
+
+            // Set Q tensor
+            if (abs(dx_defect) <= 0.5 * defect_size_x) {
+                double angle = -dy_defect / defect_size_y * M_PI;
+                double degree_of_order = 1.;  // degree of order (s) must be between -1/2 and 1
+                Q[0][l] = degree_of_order / 2.0 * cos(2 * angle);  //Qxx component
+                Q[1][l] = degree_of_order / 2.0 * sin(2 * angle);  //Qxy component
+            }
+        }
+    }
+
+    //Q relaxation
+    printf("Starting Q relaxation with defects...\n");
+    for (int t = 0; t < int(0.1 * TIME_PRE_EVOL); t++) {
+        for (int q_step = 0; q_step < N_EVOL_Q; q_step++) {
+            compute_FD_step(U, Q, QNEW, H, LMARK);
+        }
+    }
+    printf("Finished Q relaxation with defects\n");
+
     //Main part - time evolution
     for (int t = 0; t < TIME_STEPS; t++) {
         if (t % TIME_WRITE == 0) {
             write_velocity(t);
             write_orientation(t);
         }
-        compute_FD_step(U, Q, QNEW, H, LMARK);
+
+        for (int q_step = 0; q_step < N_EVOL_Q; q_step++) {
+            compute_FD_step(U, Q, QNEW, H, LMARK);
+        }
+
         compute_LB_step(U, E, FNEW, F, FEQ, P, Q, H, SIGMA, WKONST, ACTIVITY, LMARK);
     }
     

@@ -5,28 +5,39 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import matplotlib.animation as animation
 
-TIME_STEPS = 10000
-TIME_WRITE = 200
-NUM_FILES = int(TIME_STEPS / TIME_WRITE)
-DEFECT_ORDER_THRESHOLD = 0.2  # lower is stricter
+rng = np.random.default_rng(42)
 
-I = 151
-J = 41
+TIME_STEPS = 160000
+TIME_WRITE = 2000
+NUM_FILES = int(TIME_STEPS / TIME_WRITE)
+DEFECT_ORDER_THRESHOLD = 0.5  # lower is stricter
+
+I = 420
+J = 420
 max_index = I * J - 1
 
-tri1_base_x_frac = 0.1
-tri2_base_x_frac = 0.27
-tri3_base_x_frac = 0.44
-tri4_base_x_frac = 0.61
-tri5_base_x_frac = 0.78
-tri_base_y_frac = 0.5
-height_frac = 0.15
-half_width_frac = 0.1
+h_chan_top_frac = 12 / 21
+h_chan_bot_frac = 9 / 21
+v_chan_left_frac = 9 / 21
+v_chan_right_frac = 12 / 21
+
+h_top_frac = 11 / 21
+h_bot_frac = 10 / 21
+h_left_frac = 3 / 21
+h_right_frac = 18 / 21
+
+v_top_frac = 18 / 21
+v_bot_frac = 3 / 21
+v_left_frac = 10 / 21
+v_right_frac = 11 / 21
 
 fig1, ax1 = plt.subplots()
 fig1.subplots_adjust(left=0, bottom=0, right=1, top=1, wspace=None, hspace=None)
 fig2, ax2 = plt.subplots()
 fig2.subplots_adjust(left=0, bottom=0, right=1, top=1, wspace=None, hspace=None)
+
+sample_fraction = 0.05
+sample_indices = np.sort(rng.permutation(I * J)[:int(sample_fraction * I * J)])
 
 
 def computeAngleDiff(startAngle, endAngle):
@@ -48,54 +59,48 @@ def updateAx1(i):
     vy = df_velocity.iloc[:, 4]
 
     ax1.clear()
-    im = ax1.quiver(x, y, vx, vy, pivot='mid', width=0.0005, color='xkcd:royal blue')
+    im = ax1.quiver(x[sample_indices], y[sample_indices], vx[sample_indices], vy[sample_indices], pivot='mid', width=0.0005, color='xkcd:royal blue')
     ax1.set_axis_off()
     xmin, xmax = np.min(x), np.max(x)
     ymin, ymax = np.min(y), np.max(y)
 
-    # triangle 1
-    bottom_point = np.array([xmin + tri1_base_x_frac * (xmax - xmin), ymin + (tri_base_y_frac + half_width_frac) * (ymax - ymin)])  # bottom point
-    top_point = np.array([xmin + tri1_base_x_frac * (xmax - xmin), ymin + (tri_base_y_frac - half_width_frac) * (ymax - ymin)])  # top point
-    right_point = np.array([xmin + (tri1_base_x_frac + height_frac) * (xmax - xmin), ymin + tri_base_y_frac * (ymax - ymin)])  # right point
-    triangle = np.vstack((bottom_point, top_point, right_point))
-    activity_pattern = patches.Polygon(triangle, facecolor='xkcd:gold', alpha=0.3)
+    # plus pattern
+    h_point1 = np.array([xmin + h_left_frac * (xmax - xmin), ymin + h_bot_frac * (ymax - ymin)])
+    h_point2 = np.array([xmin + h_left_frac * (xmax - xmin), ymin + h_top_frac * (ymax - ymin)])
+    h_point3 = np.array([xmin + h_right_frac * (xmax - xmin), ymin + h_top_frac * (ymax - ymin)])
+    h_point4 = np.array([xmin + h_right_frac * (xmax - xmin), ymin + h_bot_frac * (ymax - ymin)])
+
+    v_point1 = np.array([xmin + v_left_frac * (xmax - xmin), ymin + v_bot_frac * (ymax - ymin)])
+    v_point2 = np.array([xmin + v_left_frac * (xmax - xmin), ymin + v_top_frac * (ymax - ymin)])
+    v_point3 = np.array([xmin + v_right_frac * (xmax - xmin), ymin + v_top_frac * (ymax - ymin)])
+    v_point4 = np.array([xmin + v_right_frac * (xmax - xmin), ymin + v_bot_frac * (ymax - ymin)])
+
+    corner_top_left = np.array([xmin + v_left_frac * (xmax - xmin), ymin + h_top_frac * (ymax - ymin)])
+    corner_top_right = np.array([xmin + v_right_frac * (xmax - xmin), ymin + h_top_frac * (ymax - ymin)])
+    corner_bot_right = np.array([xmin + v_right_frac * (xmax - xmin), ymin + h_bot_frac * (ymax - ymin)])
+    corner_bot_left = np.array([xmin + v_left_frac * (xmax - xmin), ymin + h_bot_frac * (ymax - ymin)])
+
+    plus = np.vstack((h_point2, corner_top_left, v_point2, v_point3, corner_top_right, h_point3, h_point4, corner_bot_right, v_point4, v_point1, corner_bot_left, h_point1))
+    #channel = np.vstack((h_point2, h_point3, h_point4, h_point1))
+    activity_pattern = patches.Polygon(plus, facecolor='xkcd:gold', alpha=0.3)
     ax1.add_patch(activity_pattern)
 
-    # triangle 2
-    bottom_point = np.array([xmin + tri2_base_x_frac * (xmax - xmin), ymin + (tri_base_y_frac + half_width_frac) * (ymax - ymin)])  # bottom point
-    top_point = np.array([xmin + tri2_base_x_frac * (xmax - xmin), ymin + (tri_base_y_frac - half_width_frac) * (ymax - ymin)])  # top point
-    right_point = np.array([xmin + (tri2_base_x_frac + height_frac) * (xmax - xmin), ymin + tri_base_y_frac * (ymax - ymin)])  # right point
-    triangle = np.vstack((bottom_point, top_point, right_point))
-    activity_pattern = patches.Polygon(triangle, facecolor='xkcd:gold', alpha=0.3)
-    ax1.add_patch(activity_pattern)
+    rect_top_left = patches.Polygon(np.vstack((np.array([xmin, ymin + h_chan_top_frac * (ymax - ymin)]), np.array([xmin + v_chan_left_frac * (xmax - xmin), ymin + h_chan_top_frac * (ymax - ymin)]), np.array([xmin + v_chan_left_frac * (xmax - xmin), ymax]), np.array([xmin, ymax]))), facecolor='xkcd:grey', alpha=1)
+    ax1.add_patch(rect_top_left)
 
-    # triangle 3
-    bottom_point = np.array([xmin + tri3_base_x_frac * (xmax - xmin), ymin + (tri_base_y_frac + half_width_frac) * (ymax - ymin)])  # bottom point
-    top_point = np.array([xmin + tri3_base_x_frac * (xmax - xmin), ymin + (tri_base_y_frac - half_width_frac) * (ymax - ymin)])  # top point
-    right_point = np.array([xmin + (tri3_base_x_frac + height_frac) * (xmax - xmin), ymin + tri_base_y_frac * (ymax - ymin)])  # right point
-    triangle = np.vstack((bottom_point, top_point, right_point))
-    activity_pattern = patches.Polygon(triangle, facecolor='xkcd:gold', alpha=0.3)
-    ax1.add_patch(activity_pattern)
+    rect_top_right = patches.Polygon(np.vstack((np.array([xmin + v_chan_right_frac * (xmax - xmin), ymin + h_chan_top_frac * (ymax - ymin)]), np.array([xmin + v_chan_right_frac * (xmax - xmin), ymax]), np.array([xmax, ymax]), np.array([xmax, ymin + h_chan_top_frac * (ymax - ymin)]))), facecolor='xkcd:grey', alpha=1)
+    ax1.add_patch(rect_top_right)
 
-    # triangle 4
-    bottom_point = np.array([xmin + tri4_base_x_frac * (xmax - xmin), ymin + (tri_base_y_frac + half_width_frac) * (ymax - ymin)])  # bottom point
-    top_point = np.array([xmin + tri4_base_x_frac * (xmax - xmin), ymin + (tri_base_y_frac - half_width_frac) * (ymax - ymin)])  # top point
-    right_point = np.array([xmin + (tri4_base_x_frac + height_frac) * (xmax - xmin), ymin + tri_base_y_frac * (ymax - ymin)])  # right point
-    triangle = np.vstack((bottom_point, top_point, right_point))
-    activity_pattern = patches.Polygon(triangle, facecolor='xkcd:gold', alpha=0.3)
-    ax1.add_patch(activity_pattern)
+    rect_bot_right = patches.Polygon(np.vstack((np.array([xmax, ymin + h_chan_bot_frac * (ymax - ymin)]), np.array([xmax, ymin]), np.array([xmin + v_chan_right_frac * (xmax - xmin), ymin]), np.array([xmin + v_chan_right_frac * (xmax - xmin), ymin + h_chan_bot_frac * (ymax - ymin)]))), facecolor='xkcd:grey', alpha=1)
+    ax1.add_patch(rect_bot_right)
 
-    # triangle 5
-    bottom_point = np.array([xmin + tri5_base_x_frac * (xmax - xmin), ymin + (tri_base_y_frac + half_width_frac) * (ymax - ymin)])  # bottom point
-    top_point = np.array([xmin + tri5_base_x_frac * (xmax - xmin), ymin + (tri_base_y_frac - half_width_frac) * (ymax - ymin)])  # top point
-    right_point = np.array([xmin + (tri5_base_x_frac + height_frac) * (xmax - xmin), ymin + tri_base_y_frac * (ymax - ymin)])  # right point
-    triangle = np.vstack((bottom_point, top_point, right_point))
-    activity_pattern = patches.Polygon(triangle, facecolor='xkcd:gold', alpha=0.3)
-    ax1.add_patch(activity_pattern)
+    rect_bot_left = patches.Polygon(np.vstack((np.array([xmin, ymin]), np.array([xmin, ymin + h_chan_bot_frac * (ymax - ymin)]), np.array([xmin + v_chan_left_frac * (xmax - xmin), ymin + h_chan_bot_frac * (ymax - ymin)]), np.array([xmin + v_chan_left_frac * (xmax - xmin), ymin]))), facecolor='xkcd:grey', alpha=1)
+    ax1.add_patch(rect_bot_left)
 
     ax1.axis('equal')
 
     return im,
+
 
 def updateAx2(i):
     df_orientation = pd.read_csv('output/active_nematic_orientation_' + str(i * TIME_WRITE) + '.dat', sep=' ', header=None)
@@ -127,7 +132,7 @@ def updateAx2(i):
         i8 = x_defect + 1 + (y_defect - 1) * I
         defect_order = order[i0]
 
-        if all(np.array([i1, i2, i3, i4, i5, i6, i7, i8]) < max_index):
+        if all(np.array([i1, i2, i3, i4, i5, i6, i7, i8]) < max_index) and all(np.array([i1, i2, i3, i4, i5, i6, i7, i8]) > 0):
             if defect_order < order[i1] and defect_order < order[i2] and defect_order < order[i3] and defect_order < order[i4] and defect_order < order[i5] and defect_order < order[i6] and defect_order < order[i7] and defect_order < order[i8]:
                 winding_number = 0
                 winding_number += computeAngleDiff(angle[i5], angle[i3])
@@ -150,58 +155,52 @@ def updateAx2(i):
                     defect_colors.append('xkcd:azure')
 
     ax2.clear()
-    im = ax2.scatter(filtered_x_defects, filtered_y_defects, c=defect_colors)
-    im = ax2.quiver(x, y, cos, sin, pivot='mid', width=0.0005, color='xkcd:royal blue', headlength=0, headaxislength=0)  # headless quivers for nematics
+    im = ax2.scatter(filtered_x_defects, filtered_y_defects, s=10, c=defect_colors)
+    im = ax2.quiver(x[sample_indices], y[sample_indices], cos[sample_indices], sin[sample_indices], pivot='mid', width=0.0005, color='xkcd:royal blue', headlength=0, headaxislength=0)  # headless quivers for nematics
     ax2.set_axis_off()
     xmin, xmax = np.min(x), np.max(x)
     ymin, ymax = np.min(y), np.max(y)
 
-    # triangle 1
-    bottom_point = np.array([xmin + tri1_base_x_frac * (xmax - xmin), ymin + (tri_base_y_frac + half_width_frac) * (ymax - ymin)])  # bottom point
-    top_point = np.array([xmin + tri1_base_x_frac * (xmax - xmin), ymin + (tri_base_y_frac - half_width_frac) * (ymax - ymin)])  # top point
-    right_point = np.array([xmin + (tri1_base_x_frac + height_frac) * (xmax - xmin), ymin + tri_base_y_frac * (ymax - ymin)])  # right point
-    triangle = np.vstack((bottom_point, top_point, right_point))
-    activity_pattern = patches.Polygon(triangle, facecolor='xkcd:gold', alpha=0.3)
+    # plus pattern
+    h_point1 = np.array([xmin + h_left_frac * (xmax - xmin), ymin + h_bot_frac * (ymax - ymin)])
+    h_point2 = np.array([xmin + h_left_frac * (xmax - xmin), ymin + h_top_frac * (ymax - ymin)])
+    h_point3 = np.array([xmin + h_right_frac * (xmax - xmin), ymin + h_top_frac * (ymax - ymin)])
+    h_point4 = np.array([xmin + h_right_frac * (xmax - xmin), ymin + h_bot_frac * (ymax - ymin)])
+
+    v_point1 = np.array([xmin + v_left_frac * (xmax - xmin), ymin + v_bot_frac * (ymax - ymin)])
+    v_point2 = np.array([xmin + v_left_frac * (xmax - xmin), ymin + v_top_frac * (ymax - ymin)])
+    v_point3 = np.array([xmin + v_right_frac * (xmax - xmin), ymin + v_top_frac * (ymax - ymin)])
+    v_point4 = np.array([xmin + v_right_frac * (xmax - xmin), ymin + v_bot_frac * (ymax - ymin)])
+
+    corner_top_left = np.array([xmin + v_left_frac * (xmax - xmin), ymin + h_top_frac * (ymax - ymin)])
+    corner_top_right = np.array([xmin + v_right_frac * (xmax - xmin), ymin + h_top_frac * (ymax - ymin)])
+    corner_bot_right = np.array([xmin + v_right_frac * (xmax - xmin), ymin + h_bot_frac * (ymax - ymin)])
+    corner_bot_left = np.array([xmin + v_left_frac * (xmax - xmin), ymin + h_bot_frac * (ymax - ymin)])
+
+    plus = np.vstack((h_point2, corner_top_left, v_point2, v_point3, corner_top_right, h_point3, h_point4, corner_bot_right, v_point4, v_point1, corner_bot_left, h_point1))
+    #channel = np.vstack((h_point2, h_point3, h_point4, h_point1))
+    activity_pattern = patches.Polygon(plus, facecolor='xkcd:gold', alpha=0.3)
     ax2.add_patch(activity_pattern)
 
-    # triangle 2
-    bottom_point = np.array([xmin + tri2_base_x_frac * (xmax - xmin), ymin + (tri_base_y_frac + half_width_frac) * (ymax - ymin)])  # bottom point
-    top_point = np.array([xmin + tri2_base_x_frac * (xmax - xmin), ymin + (tri_base_y_frac - half_width_frac) * (ymax - ymin)])  # top point
-    right_point = np.array([xmin + (tri2_base_x_frac + height_frac) * (xmax - xmin), ymin + tri_base_y_frac * (ymax - ymin)])  # right point
-    triangle = np.vstack((bottom_point, top_point, right_point))
-    activity_pattern = patches.Polygon(triangle, facecolor='xkcd:gold', alpha=0.3)
-    ax2.add_patch(activity_pattern)
+    rect_top_left = patches.Polygon(np.vstack((np.array([xmin, ymin + h_chan_top_frac * (ymax - ymin)]), np.array([xmin + v_chan_left_frac * (xmax - xmin), ymin + h_chan_top_frac * (ymax - ymin)]), np.array([xmin + v_chan_left_frac * (xmax - xmin), ymax]), np.array([xmin, ymax]))), facecolor='xkcd:grey', alpha=1)
+    ax2.add_patch(rect_top_left)
 
-    # triangle 3
-    bottom_point = np.array([xmin + tri3_base_x_frac * (xmax - xmin), ymin + (tri_base_y_frac + half_width_frac) * (ymax - ymin)])  # bottom point
-    top_point = np.array([xmin + tri3_base_x_frac * (xmax - xmin), ymin + (tri_base_y_frac - half_width_frac) * (ymax - ymin)])  # top point
-    right_point = np.array([xmin + (tri3_base_x_frac + height_frac) * (xmax - xmin), ymin + tri_base_y_frac * (ymax - ymin)])  # right point
-    triangle = np.vstack((bottom_point, top_point, right_point))
-    activity_pattern = patches.Polygon(triangle, facecolor='xkcd:gold', alpha=0.3)
-    ax2.add_patch(activity_pattern)
+    rect_top_right = patches.Polygon(np.vstack((np.array([xmin + v_chan_right_frac * (xmax - xmin), ymin + h_chan_top_frac * (ymax - ymin)]), np.array([xmin + v_chan_right_frac * (xmax - xmin), ymax]), np.array([xmax, ymax]), np.array([xmax, ymin + h_chan_top_frac * (ymax - ymin)]))), facecolor='xkcd:grey', alpha=1)
+    ax2.add_patch(rect_top_right)
 
-    # triangle 4
-    bottom_point = np.array([xmin + tri4_base_x_frac * (xmax - xmin), ymin + (tri_base_y_frac + half_width_frac) * (ymax - ymin)])  # bottom point
-    top_point = np.array([xmin + tri4_base_x_frac * (xmax - xmin), ymin + (tri_base_y_frac - half_width_frac) * (ymax - ymin)])  # top point
-    right_point = np.array([xmin + (tri4_base_x_frac + height_frac) * (xmax - xmin), ymin + tri_base_y_frac * (ymax - ymin)])  # right point
-    triangle = np.vstack((bottom_point, top_point, right_point))
-    activity_pattern = patches.Polygon(triangle, facecolor='xkcd:gold', alpha=0.3)
-    ax2.add_patch(activity_pattern)
+    rect_bot_right = patches.Polygon(np.vstack((np.array([xmax, ymin + h_chan_bot_frac * (ymax - ymin)]), np.array([xmax, ymin]), np.array([xmin + v_chan_right_frac * (xmax - xmin), ymin]), np.array([xmin + v_chan_right_frac * (xmax - xmin), ymin + h_chan_bot_frac * (ymax - ymin)]))), facecolor='xkcd:grey', alpha=1)
+    ax2.add_patch(rect_bot_right)
 
-    # triangle 5
-    bottom_point = np.array([xmin + tri5_base_x_frac * (xmax - xmin), ymin + (tri_base_y_frac + half_width_frac) * (ymax - ymin)])  # bottom point
-    top_point = np.array([xmin + tri5_base_x_frac * (xmax - xmin), ymin + (tri_base_y_frac - half_width_frac) * (ymax - ymin)])  # top point
-    right_point = np.array([xmin + (tri5_base_x_frac + height_frac) * (xmax - xmin), ymin + tri_base_y_frac * (ymax - ymin)])  # right point
-    triangle = np.vstack((bottom_point, top_point, right_point))
-    activity_pattern = patches.Polygon(triangle, facecolor='xkcd:gold', alpha=0.3)
-    ax2.add_patch(activity_pattern)
+    rect_bot_left = patches.Polygon(np.vstack((np.array([xmin, ymin]), np.array([xmin, ymin + h_chan_bot_frac * (ymax - ymin)]), np.array([xmin + v_chan_left_frac * (xmax - xmin), ymin + h_chan_bot_frac * (ymax - ymin)]), np.array([xmin + v_chan_left_frac * (xmax - xmin), ymin]))), facecolor='xkcd:grey', alpha=1)
+    ax2.add_patch(rect_bot_left)
 
     ax2.axis('equal')
 
     return im,
 
+
 # Create the animation object
-velocity_animation_fig = animation.FuncAnimation(fig1, updateAx1, frames=NUM_FILES, interval=20, blit=True, repeat_delay=2,)
-orientation_animation_fig = animation.FuncAnimation(fig2, updateAx2, frames=NUM_FILES, interval=20, blit=True, repeat_delay=2,)
+velocity_animation_fig = animation.FuncAnimation(fig1, updateAx1, frames=NUM_FILES, interval=40, blit=True, repeat_delay=2,)
+orientation_animation_fig = animation.FuncAnimation(fig2, updateAx2, frames=NUM_FILES, interval=40, blit=True, repeat_delay=2,)
 velocity_animation_fig.save("velocity.gif", dpi=400, savefig_kwargs=dict(facecolor='xkcd:white'))
 orientation_animation_fig.save("orientation.gif", dpi=400, savefig_kwargs=dict(facecolor='xkcd:white'))

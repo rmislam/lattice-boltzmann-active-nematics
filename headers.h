@@ -34,4 +34,4 @@ __global__
 void computeQNEW(double **U, double **Q, double **QNEW, double **H, char *LMARK);
 
 __global__
-void calcQNEW2Q(double **Q, double **QNEW);
+void calcQNEW2Q(double **Q, double **QNEW, char *LMARK);

@@ -5,7 +5,7 @@ void compute_FD_step(double **U, double **Q, double **QNEW, double **H, char *LM
     computeQNEW<<<num_blocks, BLOCK_SIZE>>>(U, Q, QNEW, H, LMARK);
     cudaDeviceSynchronize();
 
-    calcQNEW2Q<<<num_blocks, BLOCK_SIZE>>>(Q, QNEW);
+    calcQNEW2Q<<<num_blocks, BLOCK_SIZE>>>(Q, QNEW, LMARK);
     cudaDeviceSynchronize();
 }
 
@@ -15,7 +15,7 @@ void computeQNEW(double **U, double **Q, double **QNEW, double **H, char *LMARK)
     int stride = blockDim.x * gridDim.x;
 
     for (int l = index; l < NMAX; l += stride) {
-        if (LMARK[l] == LMARKBULK) {
+        if (LMARK[l] == LMARK_BULK) {
             double u1[2], u2[2], u3[2];
             //Elastic part
             double Q_laplacian[2];
@@ -71,15 +71,31 @@ void computeQNEW(double **U, double **Q, double **QNEW, double **H, char *LMARK)
 
             //Make the time step
             for (int m = 0; m < 2; m++) {
-                QNEW[m][l] = Q[m][l] + DT * (GAMMA * u1[m] + u2[m] + u3[m]);
+                QNEW[m][l] = Q[m][l] + (GAMMA * u1[m] + u2[m] + u3[m]) * DT / (double)(N_EVOL_Q);
             }
         }
 
         double degree_of_order = 1.;
         double angle = 0.5 * M_PI; // vertical (homeotropic) anchoring at top and bottom boundaries  //0.25 * M_PI;
 
-        if (((l % (I * J)) / I) == 0 || ((l % (I * J)) / I) == J - 1) {
-            // infinite homeotropic anchoring at top and bottom
+        if (LMARK[l] == LMARK_TOP_WALL || LMARK[l] == LMARK_BOT_WALL) { // walls
+            angle = 0.5 * M_PI;
+            QNEW[0][l] = degree_of_order / 2.0 * cos(2 * angle);   //Qxx component
+            QNEW[1][l] = degree_of_order / 2.0 * sin(2 * angle);   //Qxy component
+        } else if (LMARK[l] == LMARK_LEFT_WALL || LMARK[l] == LMARK_RIGHT_WALL) {
+            angle = 0;
+            QNEW[0][l] = degree_of_order / 2.0 * cos(2 * angle);   //Qxx component
+            QNEW[1][l] = degree_of_order / 2.0 * sin(2 * angle);   //Qxy component
+        } else if (LMARK[l] == LMARK_CORNER_TOP_LEFT || LMARK[l] == LMARK_CORNER_BOT_RIGHT) { // corners
+            angle = 0.25 * M_PI;  // NOTE: careful: this should be 0.25, not 0.75, in order to prevent defects
+            QNEW[0][l] = degree_of_order / 2.0 * cos(2 * angle);   //Qxx component
+            QNEW[1][l] = degree_of_order / 2.0 * sin(2 * angle);   //Qxy component
+        } else if (LMARK[l] == LMARK_CORNER_TOP_RIGHT || LMARK[l] == LMARK_CORNER_BOT_LEFT) {
+            angle = 0.25 * M_PI;
+            QNEW[0][l] = degree_of_order / 2.0 * cos(2 * angle);   //Qxx component
+            QNEW[1][l] = degree_of_order / 2.0 * sin(2 * angle);   //Qxy component
+        } else if (LMARK[l] == LMARK_OBS_BULK) {
+            angle = 0.25 * M_PI;
             QNEW[0][l] = degree_of_order / 2.0 * cos(2 * angle);   //Qxx component
             QNEW[1][l] = degree_of_order / 2.0 * sin(2 * angle);   //Qxy component
         }
@@ -88,21 +104,26 @@ void computeQNEW(double **U, double **Q, double **QNEW, double **H, char *LMARK)
 
 //Write QNEW back to Q and implement the open boundaries on left and right edges
 __global__
-void calcQNEW2Q(double **Q, double **QNEW) {
+void calcQNEW2Q(double **Q, double **QNEW, char *LMARK) {
     int index = blockIdx.x * blockDim.x + threadIdx.x;
     int stride = blockDim.x * gridDim.x;
 
     for (int l = index; l < NMAX; l += stride) {
-        if ((l % I) == 0) {
+        if (LMARK[l] == LMARK_TOP_OUTLET) {  // outlets -- periodic
             for(int m = 0; m < 2; m++) {
-                Q[m][l] = QNEW[m][l + 1];
-                //Q[m][l] = QNEW[m][l + I - 2];
+                Q[m][l] = QNEW[m][l - I * (J - 2)];
             }
-        }
-        else if ((l % I) == I - 1) {
+        } else if (LMARK[l] == LMARK_BOT_OUTLET) {
             for(int m = 0; m < 2; m++) {
-                Q[m][l] = QNEW[m][l - 1];
-                //Q[m][l] = QNEW[m][l - (I - 2)];
+                Q[m][l] = QNEW[m][l + I * (J - 2)];
+            }
+        } else if (LMARK[l] == LMARK_LEFT_OUTLET) {
+            for(int m = 0; m < 2; m++) {
+                Q[m][l] = QNEW[m][l + I - 2];
+            }
+        } else if (LMARK[l] == LMARK_RIGHT_OUTLET) {
+            for(int m = 0; m < 2; m++) {
+                Q[m][l] = QNEW[m][l - (I - 2)];
             }
         } else {
             for(int m = 0; m < 2; m++) {
