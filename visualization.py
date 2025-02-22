@@ -11,6 +11,7 @@ TIME_STEPS = 160000
 TIME_WRITE = 2000
 NUM_FILES = int(TIME_STEPS / TIME_WRITE)
 DEFECT_ORDER_THRESHOLD = 0.5  # lower is stricter
+OBSTACLE_COLOR = 'xkcd:dark turquoise'
 
 I = 420
 J = 420
@@ -59,7 +60,7 @@ def updateAx1(i):
     vy = df_velocity.iloc[:, 4]
 
     ax1.clear()
-    im = ax1.quiver(x[sample_indices], y[sample_indices], vx[sample_indices], vy[sample_indices], pivot='mid', width=0.0005, color='xkcd:royal blue')
+    im = ax1.quiver(x[sample_indices], y[sample_indices], vx[sample_indices], vy[sample_indices], pivot='mid', scale=0.1, scale_units='width', width=0.0005, color='xkcd:royal blue')
     ax1.set_axis_off()
     xmin, xmax = np.min(x), np.max(x)
     ymin, ymax = np.min(y), np.max(y)
@@ -85,16 +86,16 @@ def updateAx1(i):
     activity_pattern = patches.Polygon(plus, facecolor='xkcd:gold', alpha=0.3)
     ax1.add_patch(activity_pattern)
 
-    rect_top_left = patches.Polygon(np.vstack((np.array([xmin, ymin + h_chan_top_frac * (ymax - ymin)]), np.array([xmin + v_chan_left_frac * (xmax - xmin), ymin + h_chan_top_frac * (ymax - ymin)]), np.array([xmin + v_chan_left_frac * (xmax - xmin), ymax]), np.array([xmin, ymax]))), facecolor='xkcd:grey', alpha=1)
+    rect_top_left = patches.Polygon(np.vstack((np.array([xmin, ymin + h_chan_top_frac * (ymax - ymin)]), np.array([xmin + v_chan_left_frac * (xmax - xmin), ymin + h_chan_top_frac * (ymax - ymin)]), np.array([xmin + v_chan_left_frac * (xmax - xmin), ymax]), np.array([xmin, ymax]))), facecolor=OBSTACLE_COLOR, alpha=1)
     ax1.add_patch(rect_top_left)
 
-    rect_top_right = patches.Polygon(np.vstack((np.array([xmin + v_chan_right_frac * (xmax - xmin), ymin + h_chan_top_frac * (ymax - ymin)]), np.array([xmin + v_chan_right_frac * (xmax - xmin), ymax]), np.array([xmax, ymax]), np.array([xmax, ymin + h_chan_top_frac * (ymax - ymin)]))), facecolor='xkcd:grey', alpha=1)
+    rect_top_right = patches.Polygon(np.vstack((np.array([xmin + v_chan_right_frac * (xmax - xmin), ymin + h_chan_top_frac * (ymax - ymin)]), np.array([xmin + v_chan_right_frac * (xmax - xmin), ymax]), np.array([xmax, ymax]), np.array([xmax, ymin + h_chan_top_frac * (ymax - ymin)]))), facecolor=OBSTACLE_COLOR, alpha=1)
     ax1.add_patch(rect_top_right)
 
-    rect_bot_right = patches.Polygon(np.vstack((np.array([xmax, ymin + h_chan_bot_frac * (ymax - ymin)]), np.array([xmax, ymin]), np.array([xmin + v_chan_right_frac * (xmax - xmin), ymin]), np.array([xmin + v_chan_right_frac * (xmax - xmin), ymin + h_chan_bot_frac * (ymax - ymin)]))), facecolor='xkcd:grey', alpha=1)
+    rect_bot_right = patches.Polygon(np.vstack((np.array([xmax, ymin + h_chan_bot_frac * (ymax - ymin)]), np.array([xmax, ymin]), np.array([xmin + v_chan_right_frac * (xmax - xmin), ymin]), np.array([xmin + v_chan_right_frac * (xmax - xmin), ymin + h_chan_bot_frac * (ymax - ymin)]))), facecolor=OBSTACLE_COLOR, alpha=1)
     ax1.add_patch(rect_bot_right)
 
-    rect_bot_left = patches.Polygon(np.vstack((np.array([xmin, ymin]), np.array([xmin, ymin + h_chan_bot_frac * (ymax - ymin)]), np.array([xmin + v_chan_left_frac * (xmax - xmin), ymin + h_chan_bot_frac * (ymax - ymin)]), np.array([xmin + v_chan_left_frac * (xmax - xmin), ymin]))), facecolor='xkcd:grey', alpha=1)
+    rect_bot_left = patches.Polygon(np.vstack((np.array([xmin, ymin]), np.array([xmin, ymin + h_chan_bot_frac * (ymax - ymin)]), np.array([xmin + v_chan_left_frac * (xmax - xmin), ymin + h_chan_bot_frac * (ymax - ymin)]), np.array([xmin + v_chan_left_frac * (xmax - xmin), ymin]))), facecolor=OBSTACLE_COLOR, alpha=1)
     ax1.add_patch(rect_bot_left)
 
     ax1.axis('equal')
@@ -182,16 +183,16 @@ def updateAx2(i):
     activity_pattern = patches.Polygon(plus, facecolor='xkcd:gold', alpha=0.3)
     ax2.add_patch(activity_pattern)
 
-    rect_top_left = patches.Polygon(np.vstack((np.array([xmin, ymin + h_chan_top_frac * (ymax - ymin)]), np.array([xmin + v_chan_left_frac * (xmax - xmin), ymin + h_chan_top_frac * (ymax - ymin)]), np.array([xmin + v_chan_left_frac * (xmax - xmin), ymax]), np.array([xmin, ymax]))), facecolor='xkcd:grey', alpha=1)
+    rect_top_left = patches.Polygon(np.vstack((np.array([xmin, ymin + h_chan_top_frac * (ymax - ymin)]), np.array([xmin + v_chan_left_frac * (xmax - xmin), ymin + h_chan_top_frac * (ymax - ymin)]), np.array([xmin + v_chan_left_frac * (xmax - xmin), ymax]), np.array([xmin, ymax]))), facecolor=OBSTACLE_COLOR, alpha=1)
     ax2.add_patch(rect_top_left)
 
-    rect_top_right = patches.Polygon(np.vstack((np.array([xmin + v_chan_right_frac * (xmax - xmin), ymin + h_chan_top_frac * (ymax - ymin)]), np.array([xmin + v_chan_right_frac * (xmax - xmin), ymax]), np.array([xmax, ymax]), np.array([xmax, ymin + h_chan_top_frac * (ymax - ymin)]))), facecolor='xkcd:grey', alpha=1)
+    rect_top_right = patches.Polygon(np.vstack((np.array([xmin + v_chan_right_frac * (xmax - xmin), ymin + h_chan_top_frac * (ymax - ymin)]), np.array([xmin + v_chan_right_frac * (xmax - xmin), ymax]), np.array([xmax, ymax]), np.array([xmax, ymin + h_chan_top_frac * (ymax - ymin)]))), facecolor=OBSTACLE_COLOR, alpha=1)
     ax2.add_patch(rect_top_right)
 
-    rect_bot_right = patches.Polygon(np.vstack((np.array([xmax, ymin + h_chan_bot_frac * (ymax - ymin)]), np.array([xmax, ymin]), np.array([xmin + v_chan_right_frac * (xmax - xmin), ymin]), np.array([xmin + v_chan_right_frac * (xmax - xmin), ymin + h_chan_bot_frac * (ymax - ymin)]))), facecolor='xkcd:grey', alpha=1)
+    rect_bot_right = patches.Polygon(np.vstack((np.array([xmax, ymin + h_chan_bot_frac * (ymax - ymin)]), np.array([xmax, ymin]), np.array([xmin + v_chan_right_frac * (xmax - xmin), ymin]), np.array([xmin + v_chan_right_frac * (xmax - xmin), ymin + h_chan_bot_frac * (ymax - ymin)]))), facecolor=OBSTACLE_COLOR, alpha=1)
     ax2.add_patch(rect_bot_right)
 
-    rect_bot_left = patches.Polygon(np.vstack((np.array([xmin, ymin]), np.array([xmin, ymin + h_chan_bot_frac * (ymax - ymin)]), np.array([xmin + v_chan_left_frac * (xmax - xmin), ymin + h_chan_bot_frac * (ymax - ymin)]), np.array([xmin + v_chan_left_frac * (xmax - xmin), ymin]))), facecolor='xkcd:grey', alpha=1)
+    rect_bot_left = patches.Polygon(np.vstack((np.array([xmin, ymin]), np.array([xmin, ymin + h_chan_bot_frac * (ymax - ymin)]), np.array([xmin + v_chan_left_frac * (xmax - xmin), ymin + h_chan_bot_frac * (ymax - ymin)]), np.array([xmin + v_chan_left_frac * (xmax - xmin), ymin]))), facecolor=OBSTACLE_COLOR, alpha=1)
     ax2.add_patch(rect_bot_left)
 
     ax2.axis('equal')

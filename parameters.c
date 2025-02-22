@@ -13,8 +13,12 @@ char FILE_NAME[80] = "output/active_nematic";
 
 //Total number of time steps in the simulation
 #define TIME_STEPS 160000
+
 //On how many steps the fields are written to a file
 #define TIME_WRITE 2000
+
+//On how many time steps to print progress
+#define TIME_PRINT 5000
 
 //How many time steps for Q relaxation
 #define TIME_PRE_EVOL 10000
@@ -45,6 +49,7 @@ int STPROC = 2;
 #define DT 1 //0.05 // 0.002 // 0.0001   // try 0.01 or 0.005
 
 //relaxation time of the Lb scheme
+//physical kinematic viscosity = (1 / 3) * (TAUF - 0.5) * dx^2 / DT
 #define TAUF 1 //(0.55 * DT) // corresponds to viscosity of 1/3, taking into account GAMMA // (1.0 * DT)  // must be greater than 0.5 * DT
 
 //Density parameter

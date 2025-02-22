@@ -152,6 +152,11 @@ int main(int argc, char** args){
     //Q relaxation
     printf("Starting Q relaxation without defects...\n");
     for (int t = 0; t < TIME_PRE_EVOL; t++) {
+        if (t % TIME_PRINT == 0) {
+            printf("timestep: %d / %d\n", t, TIME_PRE_EVOL);
+            fflush(stdout);
+        }
+
         if (t % TIME_WRITE == 0) {
             write_velocity(t);
             write_orientation(t);
@@ -169,10 +174,10 @@ int main(int argc, char** args){
         int j = (l % (I * J)) / I;
 
         // defect location
-        double defect_x = 9.5; //round(0.05 * I - 0.5); // 9.5;
-        double defect_y = 209.5; // round(0.5 * J - 0.5);
-        double defect_size_x = 120;
-        double defect_size_y = 40;
+        double defect_x = I / 42.0 - 0.5; // 9.5;
+        double defect_y = 0.5 * J - 0.5; //209.5;
+        double defect_size_x = I / 3.5;
+        double defect_size_y = J / 10.5;
 
         double dy_defect = (double)(j) - defect_y;
 
@@ -208,6 +213,11 @@ int main(int argc, char** args){
     //Q relaxation
     printf("Starting Q relaxation with defects...\n");
     for (int t = 0; t < int(0.1 * TIME_PRE_EVOL); t++) {
+        if (t % TIME_PRINT == 0) {
+            printf("timestep: %d / %d\n", t, int(0.1 * TIME_PRE_EVOL));
+            fflush(stdout);
+        }
+
         for (int q_step = 0; q_step < N_EVOL_Q; q_step++) {
             compute_FD_step(U, Q, QNEW, H, LMARK);
         }
@@ -215,7 +225,13 @@ int main(int argc, char** args){
     printf("Finished Q relaxation with defects\n");
 
     //Main part - time evolution
+    printf("Starting main evolution...\n");
     for (int t = 0; t < TIME_STEPS; t++) {
+        if (t % TIME_PRINT == 0) {
+            printf("timestep: %d / %d\n", t, TIME_STEPS);
+            fflush(stdout);
+        }
+
         if (t % TIME_WRITE == 0) {
             write_velocity(t);
             write_orientation(t);
@@ -227,6 +243,7 @@ int main(int argc, char** args){
 
         compute_LB_step(U, E, FNEW, F, FEQ, P, Q, H, SIGMA, WKONST, ACTIVITY, LMARK);
     }
+    printf("Finished main evolution\n");
     
     //Write the final fields
     write_velocity(TIME_STEPS);

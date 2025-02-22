@@ -97,7 +97,12 @@ void computeFNEW(double **FNEW, double **F, double **FEQ, int **E, double **P) {
             // Compute streaming location
             int lnew = (l % I) + E[m][0] + (((l % (I * J)) / I) + E[m][1]) * I;  // i + j * I
             if (lnew >= NMAX || lnew < 0) continue;
-            FNEW[m][lnew] = F[m][l] + DT * ((FEQ[m][l] - F[m][l]) / TAUF + P[m][l]);
+
+            if (DT == 1 && TAUF == 1) {
+                FNEW[m][lnew] = FEQ[m][l] + P[m][l];
+            } else {
+                FNEW[m][lnew] = F[m][l] + DT * ((FEQ[m][l] - F[m][l]) / TAUF + P[m][l]);
+            }
         }
     }
 }
