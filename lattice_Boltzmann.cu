@@ -202,9 +202,9 @@ void enforceBCAndCalcFNEW2F2U(double **FNEW, double **F, double **U, int **E, do
         } else if (LMARK[l] == LMARK_CORNER_BOT_LEFT || LMARK[l] == LMARK_CORNER_BOT_RIGHT || LMARK[l] == LMARK_CORNER_TOP_LEFT || LMARK[l] == LMARK_CORNER_TOP_RIGHT) {  // no-slip on corners
             U[1][l] = 0;
             U[2][l] = 0;
-        } else if (LMARK[l] == LMARK_OBS_BULK) {  // nothing moving inside obstacle
-            U[1][l] = 0;
-            U[2][l] = 0;
+        //} else if (LMARK[l] == LMARK_OBS_BULK) {  // nothing moving inside obstacle
+        //    U[1][l] = 0;
+        //    U[2][l] = 0;
         }
     }
 }

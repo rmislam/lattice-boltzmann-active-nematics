@@ -94,10 +94,10 @@ void computeQNEW(double **U, double **Q, double **QNEW, double **H, char *LMARK)
             angle = 0.25 * M_PI;
             QNEW[0][l] = degree_of_order / 2.0 * cos(2 * angle);   //Qxx component
             QNEW[1][l] = degree_of_order / 2.0 * sin(2 * angle);   //Qxy component
-        } else if (LMARK[l] == LMARK_OBS_BULK) {
-            angle = 0.25 * M_PI;
-            QNEW[0][l] = degree_of_order / 2.0 * cos(2 * angle);   //Qxx component
-            QNEW[1][l] = degree_of_order / 2.0 * sin(2 * angle);   //Qxy component
+        //} else if (LMARK[l] == LMARK_OBS_BULK) {
+        //    angle = 0.25 * M_PI;
+        //    QNEW[0][l] = degree_of_order / 2.0 * cos(2 * angle);   //Qxx component
+        //    QNEW[1][l] = degree_of_order / 2.0 * sin(2 * angle);   //Qxy component
         }
     }
 }

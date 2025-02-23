@@ -126,6 +126,8 @@ int main(int argc, char** args){
 
         Q[0][l] = degree_of_order / 2.0 * cos(2 * angle);  //Qxx component
         Q[1][l] = degree_of_order / 2.0 * sin(2 * angle);  //Qxy component
+        QNEW[0][l] = degree_of_order / 2.0 * cos(2 * angle);  //Qxx component
+        QNEW[1][l] = degree_of_order / 2.0 * sin(2 * angle);  //Qxy component
 
         // NOTE:
         // Q = s * ([[ cos^2(theta) - 1/2,      cos(theta) * sin(theta) ],
